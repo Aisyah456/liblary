@@ -42,6 +42,7 @@ Route::prefix('layanan')->group(function () {
     Route::inertia('form-cek-turnitin', 'layanan/ajuan-cek')->name('form-cek-turnitin');
     Route::inertia('e-journal', 'layanan/journals')->name('e-journal');
     Route::inertia('kontak', 'layanan/kontak')->name('kontak');
+    Route::inertia('form-pustaka', 'layanan/form-pustaka')->name('form-pustaka');
 });
 
 /*

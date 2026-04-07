@@ -1,7 +1,7 @@
-import { Head } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
-import Footer from '@/components/home/Footer';
-import Navbar from '@/components/home/Navbar';
+import Footer from '@/Components/home/Footer';
+import Navbar from '@/Components/home/Navbar';
+import { Head, Link } from '@inertiajs/react';
+
 import {
     FileCheck,
     History,
@@ -22,7 +22,6 @@ export default function Clearance() {
                 "Buku yang hilang wajib diganti sesuai ketentuan.",
                 "Cek status secara mandiri di portal anggota."
             ],
-            color: "bg-white"
         },
         {
             title: "Penyerahan Karya",
@@ -33,7 +32,6 @@ export default function Clearance() {
                 "Lampirkan abstrak dalam Bahasa Indonesia & Inggris.",
                 "Pastikan format CD/Flashdisk sesuai standar."
             ],
-            color: "bg-white"
         },
         {
             title: "Penerbitan Surat",
@@ -44,7 +42,6 @@ export default function Clearance() {
                 "Digital signature tersedia untuk validasi online.",
                 "Surat berlaku sebagai syarat yudisium/wisuda."
             ],
-            color: "bg-white"
         }
     ];
 
@@ -59,7 +56,7 @@ export default function Clearance() {
                     <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
                         {/* HERO SECTION */}
-                        <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 border border-slate-800 p-8 md:p-16 mb-12 shadow-sm text-center">
+                        <section className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 border border-slate-800 p-8 md:p-16 mb-12 shadow-sm text-center">
                             <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl"></div>
                             <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl"></div>
 
@@ -71,13 +68,13 @@ export default function Clearance() {
                                     Panduan dan prosedur pengurusan surat keterangan bebas pinjaman bagi mahasiswa sebagai syarat kelulusan dan pengambilan ijazah.
                                 </p>
                             </div>
-                        </div>
+                        </section>
 
                         {/* STEPS PROCEDURES */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                             {clearanceSteps.map((rule, index) => (
-                                <div key={index} className={`rounded-[2rem] ${rule.color} border border-slate-200 p-8 shadow-sm transition-all hover:shadow-md hover:border-indigo-100`}>
-                                    <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-6">
+                                <div key={index} className="rounded-[2rem] bg-white border border-slate-200 p-8 shadow-sm transition-all hover:shadow-md hover:border-indigo-100 group">
+                                    <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                         {rule.icon}
                                     </div>
                                     <h3 className="text-2xl font-bold text-slate-900 mb-6">{rule.title}</h3>
@@ -94,7 +91,7 @@ export default function Clearance() {
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* ALUR PENGURUSAN (Kiri) */}
+                            {/* INFORMASI PENTING (Kiri) */}
                             <div className="lg:col-span-2">
                                 <section className="rounded-[2rem] bg-white border border-slate-200 p-8 md:p-10 shadow-sm h-full">
                                     <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
@@ -106,15 +103,18 @@ export default function Clearance() {
                                             <li>Pengurusan bebas pustaka dilakukan maksimal 2 minggu sebelum yudisium.</li>
                                             <li>Sumbangan buku alumni (jika ada kebijakan) harus dalam kondisi baru dan sesuai bidang studi.</li>
                                             <li>Pastikan akun Repositori institusi Anda sudah diverifikasi oleh pembimbing.</li>
-                                            <li>Dokumen fisik yang diserahkan harus menggunakan jilid *hardcover* warna sesuai standar fakultas.</li>
+                                            <li>Dokumen fisik yang diserahkan harus menggunakan jilid <b>hardcover</b> warna sesuai standar fakultas.</li>
                                         </ul>
+
                                         <div className="mt-8 p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center gap-4">
                                             <Download className="text-indigo-600 shrink-0" />
-                                            <div>
+                                            <div className="flex-1">
                                                 <p className="text-sm font-bold text-indigo-900">Formulir Bebas Pustaka</p>
                                                 <p className="text-xs text-indigo-600">Unduh draft surat pernyataan (PDF/DOCX)</p>
                                             </div>
-                                            <button className="ml-auto text-xs bg-white px-4 py-2 rounded-xl font-bold border border-indigo-200 hover:bg-indigo-600 hover:text-white transition-colors">Unduh</button>
+                                            <button className="text-xs bg-white px-4 py-2 rounded-xl font-bold border border-indigo-200 hover:bg-indigo-600 hover:text-white transition-colors shadow-sm">
+                                                Unduh
+                                            </button>
                                         </div>
                                     </div>
                                 </section>
@@ -130,9 +130,8 @@ export default function Clearance() {
                                         Malas antre? Sekarang Anda bisa mengajukan validasi bebas pustaka secara digital melalui sistem informasi kami.
                                     </p>
 
-                                    {/* Perbaikan: Menggunakan Link dari Inertia sebagai ganti button ref */}
                                     <Link
-                                        href="/form-bebas-pustaka"
+                                        href="/layanan/form-pustaka"
                                         className="w-full py-4 px-4 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-black transition-all active:scale-95 shadow-lg text-center block"
                                     >
                                         Mulai Pengajuan Digital
