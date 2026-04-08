@@ -1,6 +1,6 @@
+import Footer from '@/Components/home/Footer';
+import Navbar from '@/Components/home/Navbar';
 import { Head, Link } from '@inertiajs/react';
-import Footer from '@/components/home/Footer';
-import Navbar from '@/components/home/Navbar';
 
 export interface NewsItem {
     id: number;

@@ -6,6 +6,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../css/app.css';
 import { initializeTheme } from './hooks/use-appearance';
+import { route } from 'ziggy-js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -28,6 +29,8 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+
+
 });
 
 // This will set light / dark mode on load...

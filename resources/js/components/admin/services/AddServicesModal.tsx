@@ -1,5 +1,6 @@
 import { useForm } from "@inertiajs/react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload, X } from "lucide-react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -20,31 +21,42 @@ interface AddServiceModalProps {
 }
 
 export default function AddServiceModal({ isOpen, onClose }: AddServiceModalProps) {
-    // Form state disesuaikan dengan skema tabel services
+    const [preview, setPreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
-        icon: "",
+        icon: null as File | null, // Berubah dari string ke File
         title: "",
         subtitle: "",
         description: "",
-        features: [""] as string[], // Inisialisasi dengan satu input kosong
+        features: [""] as string[],
         link: "#",
         order: 0,
         is_active: true,
     });
 
-    // Menambah baris fitur baru
-    const addFeature = () => {
-        setData("features", [...data.features, ""]);
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setData("icon", file);
+            setPreview(URL.createObjectURL(file));
+        }
     };
 
-    // Menghapus baris fitur
+    const removeImage = () => {
+        setData("icon", null);
+        setPreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const addFeature = () => setData("features", [...data.features, ""]);
+
     const removeFeature = (index: number) => {
         const newFeatures = [...data.features];
         newFeatures.splice(index, 1);
         setData("features", newFeatures);
     };
 
-    // Mengubah nilai fitur tertentu
     const handleFeatureChange = (index: number, value: string) => {
         const newFeatures = [...data.features];
         newFeatures[index] = value;
@@ -54,12 +66,14 @@ export default function AddServiceModal({ isOpen, onClose }: AddServiceModalProp
     const handleClose = () => {
         reset();
         clearErrors();
+        setPreview(null);
         onClose();
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/admin/services', { // Sesuaikan route store Anda
+        // Inertia otomatis menggunakan FormData jika salah satu field adalah File
+        post('/admin/services', {
             preserveScroll: true,
             onSuccess: () => handleClose(),
         });
@@ -71,38 +85,74 @@ export default function AddServiceModal({ isOpen, onClose }: AddServiceModalProp
                 <DialogHeader>
                     <DialogTitle>Tambah Layanan Baru</DialogTitle>
                     <DialogDescription>
-                        Lengkapi detail layanan yang akan ditampilkan di landing page.
+                        Lengkapi detail layanan dan unggah foto ikon untuk tampilan landing page.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="grid gap-5 py-4">
-                    {/* Judul & Icon */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="title">Nama Layanan</Label>
-                            <Input
-                                id="title"
-                                placeholder="Contoh: Web Development"
-                                value={data.title}
-                                onChange={(e) => setData("title", e.target.value)}
-                            />
-                            {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
+                    {/* Upload Foto Section */}
+                    <div className="grid gap-2">
+                        <Label>Ikon / Foto Layanan</Label>
+                        <div className="flex items-center gap-4">
+                            <div
+                                className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 hover:bg-muted transition-colors cursor-pointer overflow-hidden"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                {preview ? (
+                                    <img src={preview} alt="Preview" className="h-full w-full object-cover" />
+                                ) : (
+                                    <Upload className="h-6 w-6 text-muted-foreground" />
+                                )}
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    Pilih Gambar
+                                </Button>
+                                <p className="text-[10px] text-muted-foreground text-pretty">
+                                    JPG, PNG atau SVG. Maksimal 2MB.
+                                </p>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                />
+                                {preview && (
+                                    <Button
+                                        type="button"
+                                        variant="link"
+                                        className="h-auto p-0 text-destructive text-xs justify-start"
+                                        onClick={removeImage}
+                                    >
+                                        Hapus Gambar
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="icon">Ikon (Emoji atau Class)</Label>
-                            <Input
-                                id="icon"
-                                placeholder="🚀 atau lucide-icon-name"
-                                value={data.icon}
-                                onChange={(e) => setData("icon", e.target.value)}
-                            />
-                            {errors.icon && <p className="text-xs text-destructive">{errors.icon}</p>}
-                        </div>
+                        {errors.icon && <p className="text-xs text-destructive">{errors.icon}</p>}
                     </div>
 
-                    {/* Subtitle (Deskripsi Singkat) */}
+                    {/* Nama Layanan */}
                     <div className="grid gap-2">
-                        <Label htmlFor="subtitle">Subtitle (Card Description)</Label>
+                        <Label htmlFor="title">Nama Layanan</Label>
+                        <Input
+                            id="title"
+                            placeholder="Contoh: Web Development"
+                            value={data.title}
+                            onChange={(e) => setData("title", e.target.value)}
+                        />
+                        {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
+                    </div>
+
+                    {/* Subtitle */}
+                    <div className="grid gap-2">
+                        <Label htmlFor="subtitle">Subtitle (Deskripsi Kartu)</Label>
                         <Input
                             id="subtitle"
                             placeholder="Deskripsi singkat yang tampil di kartu"
@@ -124,10 +174,10 @@ export default function AddServiceModal({ isOpen, onClose }: AddServiceModalProp
                         />
                     </div>
 
-                    {/* Features (Dinamis JSON) */}
+                    {/* Fitur Utama */}
                     <div className="grid gap-3 border p-3 rounded-md bg-muted/30">
                         <div className="flex justify-between items-center">
-                            <Label className="text-sm font-bold text-primary text-blue-600">Fitur Utama</Label>
+                            <Label className="text-sm font-bold text-blue-600">Fitur Utama</Label>
                             <Button type="button" variant="outline" size="sm" onClick={addFeature} className="h-7 gap-1">
                                 <Plus className="h-3 w-3" /> Tambah Fitur
                             </Button>
@@ -140,25 +190,24 @@ export default function AddServiceModal({ isOpen, onClose }: AddServiceModalProp
                                         value={feature}
                                         onChange={(e) => handleFeatureChange(index, e.target.value)}
                                     />
-                                    {data.features.length > 1 && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => removeFeature(index)}
-                                            className="text-destructive hover:bg-destructive/10"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    )}
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => removeFeature(index)}
+                                        className="text-destructive shrink-0"
+                                        disabled={data.features.length <= 1}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Link & Order & Status */}
-                    <div className="grid grid-cols-3 gap-4 items-end">
-                        <div className="grid gap-2 col-span-1">
+                    {/* Order & Link & Status */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div className="grid gap-2">
                             <Label htmlFor="order">Urutan Tampil</Label>
                             <Input
                                 id="order"
@@ -167,7 +216,7 @@ export default function AddServiceModal({ isOpen, onClose }: AddServiceModalProp
                                 onChange={(e) => setData("order", parseInt(e.target.value) || 0)}
                             />
                         </div>
-                        <div className="grid gap-2 col-span-1">
+                        <div className="grid gap-2">
                             <Label htmlFor="link">Link Tujuan</Label>
                             <Input
                                 id="link"
@@ -175,17 +224,17 @@ export default function AddServiceModal({ isOpen, onClose }: AddServiceModalProp
                                 onChange={(e) => setData("link", e.target.value)}
                             />
                         </div>
-                        <div className="flex items-center gap-3 pb-2 col-span-1 justify-end">
+                        <div className="flex items-center gap-3 pb-2 justify-end">
                             <Label htmlFor="is_active">Aktif</Label>
                             <Switch
                                 id="is_active"
                                 checked={data.is_active}
-                                onCheckedChange={(val: boolean) => setData("is_active", val)}
+                                onCheckedChange={(val) => setData("is_active", val)}
                             />
                         </div>
                     </div>
 
-                    <DialogFooter className="pt-4">
+                    <DialogFooter className="pt-4 border-t">
                         <Button type="button" variant="outline" onClick={handleClose} disabled={processing}>
                             Batal
                         </Button>

@@ -41,8 +41,8 @@ Route::prefix('layanan')->group(function () {
     Route::inertia('cek-turnitin', 'layanan/turnitin')->name('cek-turnitin');
     Route::inertia('form-cek-turnitin', 'layanan/ajuan-cek')->name('form-cek-turnitin');
     Route::inertia('e-journal', 'layanan/journals')->name('e-journal');
-    Route::inertia('kontak', 'layanan/kontak')->name('kontak');
     Route::inertia('form-pustaka', 'layanan/form-pustaka')->name('form-pustaka');
+    Route::get('kontak', [App\Http\Controllers\Api\MessageController::class, 'index'])->name('messages.index');
 });
 
 /*
@@ -51,6 +51,7 @@ Route::prefix('layanan')->group(function () {
 Route::prefix('api')->group(function () {
     Route::post('/library-feedback', [LibraryFeedbackController::class, 'store']);
     Route::get('/services', [App\Http\Controllers\Api\ServiceController::class, 'index']);
+    Route::post('/kontak/send', [App\Http\Controllers\Api\MessageController::class, 'store'])->name('messages.store');
 });
 
 /*
@@ -71,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('services', App\Http\Controllers\ServiceController::class);
             Route::post('news/{news}', [App\Http\Controllers\Cms\NewsController::class, 'update'])->name('news.update.post');
             Route::resource('news', App\Http\Controllers\Cms\NewsController::class);
+            Route::resource('messages', App\Http\Controllers\Cms\MessageController::class);
         });
     });
 

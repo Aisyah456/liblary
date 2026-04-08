@@ -6,14 +6,12 @@ use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ServiceController extends Controller
 {
-    /**
-     * Menampilkan daftar layanan.
-     */
     public function index(): Response
     {
         return Inertia::render('admin/cms/Services', [
@@ -21,81 +19,71 @@ class ServiceController extends Controller
         ]);
     }
 
-    /**
-     * Simpan layanan baru
-     */
     public function store(Request $request): RedirectResponse
     {
         try {
             $validated = $this->validateRequest($request);
 
+            if ($request->hasFile('icon')) {
+                $path = $request->file('icon')->store('services', 'public');
+                $validated['icon'] = Storage::url($path);
+            }
+
             Service::create($validated);
 
-            return back()->with('success', 'Layanan berhasil ditambahkan!');
+            return back()->with('success', 'Layanan baru berhasil diterbitkan!');
         } catch (\Throwable $e) {
-            Log::error('Store Service Error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->withErrors([
-                'error' => 'Gagal menambah data layanan.',
-            ]);
+            Log::error('Store Service Error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Gagal menambah data layanan.']);
         }
     }
 
-    /**
-     * Update layanan
-     */
     public function update(Request $request, Service $service): RedirectResponse
     {
         try {
-            $validated = $this->validateRequest($request);
+            $validated = $this->validateRequest($request, $service->id);
+
+            if ($request->hasFile('icon')) {
+                // Hapus ikon lama jika ada
+                if ($service->icon) {
+                    $oldPath = str_replace('/storage/', '', $service->icon);
+                    Storage::disk('public')->delete($oldPath);
+                }
+
+                $path = $request->file('icon')->store('services', 'public');
+                $validated['icon'] = Storage::url($path);
+            } else {
+                // Jika tidak upload file baru, gunakan ikon yang sudah ada
+                unset($validated['icon']);
+            }
 
             $service->update($validated);
 
-            return back()->with('success', 'Data layanan berhasil diperbarui!');
+            return back()->with('success', 'Perubahan layanan berhasil disimpan!');
         } catch (\Throwable $e) {
-            Log::error('Update Service Error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'service_id' => $service->id,
-            ]);
-
-            return back()->withErrors([
-                'error' => 'Terjadi kesalahan sistem saat memperbarui data.',
-            ]);
+            Log::error('Update Service Error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Terjadi kesalahan sistem saat memperbarui data.']);
         }
     }
 
-    /**
-     * Hapus layanan
-     */
     public function destroy(Service $service): RedirectResponse
     {
         try {
+            if ($service->icon) {
+                $path = str_replace('/storage/', '', $service->icon);
+                Storage::disk('public')->delete($path);
+            }
+
             $service->delete();
-
-            return back()->with('success', 'Data layanan berhasil dihapus.');
+            return back()->with('success', 'Layanan telah berhasil dihapus.');
         } catch (\Throwable $e) {
-            Log::error('Delete Service Error', [
-                'message' => $e->getMessage(),
-                'service_id' => $service->id,
-            ]);
-
-            return back()->withErrors([
-                'error' => 'Gagal menghapus data layanan.',
-            ]);
+            return back()->withErrors(['error' => 'Gagal menghapus data.']);
         }
     }
 
-    /**
-     * Centralized validation & sanitizing
-     */
-    private function validateRequest(Request $request): array
+    private function validateRequest(Request $request, $id = null): array
     {
-        $validated = $request->validate([
-            'icon' => ['required', 'string'],
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['required', 'string'],
             'description' => ['nullable', 'string'],
@@ -104,25 +92,22 @@ class ServiceController extends Controller
             'link' => ['nullable', 'string'],
             'order' => ['required', 'integer'],
             'is_active' => ['required', 'boolean'],
-        ]);
+        ];
 
-        // Bersihkan & normalize features
-        $validated['features'] = collect($validated['features'] ?? [])
-            ->filter(fn ($item) => trim($item) !== '')
-            ->map(fn ($item) => trim($item))
-            ->values()
-            ->toArray();
-
-        // Pastikan tidak null
-        if (empty($validated['features'])) {
-            $validated['features'] = [];
+        // Jika Store: Ikon wajib file. Jika Update: Ikon boleh string (URL lama) atau file baru.
+        if (!$id) {
+            $rules['icon'] = ['required', 'image', 'mimes:jpg,jpeg,png,svg', 'max:2048'];
+        } else {
+            $rules['icon'] = ['nullable'];
         }
 
-        // Pastikan boolean aman
-        $validated['is_active'] = (bool) $validated['is_active'];
+        $validated = $request->validate($rules);
 
-        // Pastikan order integer
-        $validated['order'] = (int) $validated['order'];
+        // Cleanup features
+        $validated['features'] = collect($validated['features'] ?? [])
+            ->filter(fn($item) => !empty(trim($item)))
+            ->values()
+            ->toArray();
 
         return $validated;
     }

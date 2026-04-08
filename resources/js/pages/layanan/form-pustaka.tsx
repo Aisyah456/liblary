@@ -12,6 +12,22 @@ import {
     CheckCircle2
 } from 'lucide-react';
 
+interface Faculty {
+    id: number;
+    name: string;
+}
+
+interface Major {
+    id: number;
+    name: string;
+    faculty_id: number;
+}
+
+interface Props {
+    faculties: Faculty[];
+    majors: Major[];
+}
+
 export default function LibraryFreeForm({ faculties, majors }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         full_name: '',
