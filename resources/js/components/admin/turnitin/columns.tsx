@@ -9,7 +9,9 @@ import {
   Tag,
   CheckCircle2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  GraduationCap,
+  Percent
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,25 +26,31 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /* =====================
-    TYPE
+    TYPE (Sesuai DB Schema)
 ===================== */
 export type TurnitinSubmission = {
   id: number;
-  user_id: number;
+  major_id: number;
+  identifier_id: string;
   full_name: string;
-  identifier_id: string; // NIM / NIDN
+  email: string;
   title: string;
-  document_type: 'Skripsi' | 'Tesis' | 'Artikel';
+  document_type: string;
   file_path: string;
-  status: 'Pending' | 'Processing' | 'Completed' | 'Rejected';
+  academic_year: string;
+  status: 'pending' | 'processing' | 'completed' | 'rejected'; // lowercase sesuai DB
+  similarity_percentage?: number | null;
+  result_file_path?: string | null;
+  admin_notes?: string | null;
   created_at: string;
+  major?: { name: string }; // Relasi ke tabel prodi
 };
 
 /* =====================
-    DELETE / CANCEL
+    DELETE ACTION
 ===================== */
 const handleDelete = (id: number) => {
-  if (confirm("Yakin ingin menghapus pengajuan ini?")) {
+  if (confirm("Yakin ingin menghapus pengajuan ini secara permanen?")) {
     router.delete(`/admin/turnitin/submissions/${id}`, {
       preserveScroll: true,
     });
@@ -73,48 +81,62 @@ export const columns = (
     },
     {
       accessorKey: "full_name",
-      header: "Mahasiswa / Dosen",
+      header: "Informasi Pengaju",
       cell: ({ row }) => (
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-slate-400" />
             <span className="font-medium text-slate-900">{row.original.full_name}</span>
           </div>
-          <span className="text-[10px] text-slate-400 ml-6 uppercase">{row.original.identifier_id}</span>
+          <div className="flex items-center gap-1 text-[10px] text-slate-400 ml-6 uppercase font-semibold">
+            <span>{row.original.identifier_id}</span>
+            <span>•</span>
+            <span className="text-indigo-500 font-normal">{row.original.major?.name || 'Umum'}</span>
+          </div>
         </div>
       ),
     },
     {
       accessorKey: "title",
-      header: "Informasi Karya",
+      header: "Dokumen",
       cell: ({ row }) => (
-        <div className="flex flex-col max-w-[300px]">
+        <div className="flex flex-col max-w-[250px]">
           <div className="flex items-start gap-2">
-            <FileText className="h-4 w-4 text-indigo-500 mt-1 shrink-0" />
-            <span className="font-semibold text-slate-800 line-clamp-2 leading-tight">
+            <FileText className="h-4 w-4 text-slate-400 mt-1 shrink-0" />
+            <span className="font-medium text-slate-800 line-clamp-2 leading-tight">
               {row.original.title}
             </span>
           </div>
-          <div className="flex items-center gap-2 mt-1 ml-6">
-            <Tag className="h-3 w-3 text-slate-400" />
-            <span className="text-xs text-slate-500">{row.original.document_type}</span>
+          <div className="flex items-center gap-2 mt-1 ml-6 text-[11px]">
+            <Badge variant="secondary" className="text-[9px] h-4 px-1.5 uppercase bg-slate-100">
+              {row.original.document_type}
+            </Badge>
+            <span className="text-slate-400">{row.original.academic_year}</span>
           </div>
         </div>
       ),
     },
     {
-      accessorKey: "created_at",
-      header: "Tanggal Pengajuan",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2 text-slate-600 text-sm">
-          <Calendar className="h-3 w-3" />
-          {new Date(row.original.created_at).toLocaleDateString("id-ID", {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-          })}
-        </div>
-      ),
+      accessorKey: "similarity_percentage",
+      header: "Hasil Similarity",
+      cell: ({ row }) => {
+        const percentage = row.original.similarity_percentage;
+        if (percentage === null || percentage === undefined) return <span className="text-slate-300 italic text-xs">Belum ada hasil</span>;
+
+        // Warna dinamis berdasarkan persentase
+        const getSimilarityColor = (p: number) => {
+          if (p <= 20) return "text-emerald-600";
+          if (p <= 40) return "text-amber-600";
+          return "text-red-600";
+        };
+
+        return (
+          <div className={`flex items-center gap-1.5 font-bold ${getSimilarityColor(percentage)}`}>
+            <Percent className="h-3.5 w-3.5" />
+            {percentage}%
+          </div>
+        );
+      },
     },
     {
       accessorKey: "status",
@@ -122,17 +144,17 @@ export const columns = (
       cell: ({ row }) => {
         const status = row.original.status;
         const variants: Record<string, { label: string, className: string, icon: any }> = {
-          Pending: { label: 'Menunggu', className: 'bg-amber-100 text-amber-700 border-amber-200', icon: Clock },
-          Processing: { label: 'Diproses', className: 'bg-blue-100 text-blue-700 border-blue-200', icon: AlertCircle },
-          Completed: { label: 'Selesai', className: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
-          Rejected: { label: 'Ditolak', className: 'bg-red-100 text-red-700 border-red-200', icon: AlertCircle },
+          pending: { label: 'Menunggu', className: 'bg-amber-50 text-amber-700 border-amber-200', icon: Clock },
+          processing: { label: 'Diproses', className: 'bg-blue-50 text-blue-700 border-blue-200', icon: AlertCircle },
+          completed: { label: 'Selesai', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
+          rejected: { label: 'Ditolak', className: 'bg-red-50 text-red-700 border-red-200', icon: AlertCircle },
         };
 
-        const config = variants[status] || variants.Pending;
+        const config = variants[status] || variants.pending;
         const Icon = config.icon;
 
         return (
-          <Badge variant="outline" className={`flex w-fit items-center gap-1.5 px-2 py-0.5 font-medium ${config.className}`}>
+          <Badge variant="outline" className={`flex w-fit items-center gap-1.5 px-2 py-0.5 font-medium capitalize ${config.className}`}>
             <Icon className="h-3.5 w-3.5" />
             {config.label}
           </Badge>
@@ -146,13 +168,13 @@ export const columns = (
 
         return (
           <div className="flex items-center gap-2">
-            {/* Tombol Cepat Download File Asli */}
+            {/* Tombol Download File Asli */}
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-              onClick={() => window.open(`/admin/turnitin/download/${submission.id}`, '_blank')}
-              title="Download Dokumen"
+              className="h-8 w-8 text-slate-600 border-slate-200 hover:bg-slate-50"
+              onClick={() => window.open(`/admin/turnitin/download-original/${submission.id}`, '_blank')}
+              title="Download Dokumen Asli"
             >
               <Download className="h-4 w-4" />
             </Button>
@@ -164,23 +186,35 @@ export const columns = (
                 </Button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Aksi Turnitin</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Opsi Kelola</DropdownMenuLabel>
                 <DropdownMenuItem
+                  className="cursor-pointer"
                   onClick={() => {
                     setSelectedSubmission(submission);
                     setProcessModalOpen(true);
                   }}
                 >
-                  Proses & Input Hasil
+                  <FileText className="mr-2 h-4 w-4" />
+                  Update Hasil / Status
                 </DropdownMenuItem>
-                <DropdownMenuItem>Lihat Detail Pengaju</DropdownMenuItem>
+
+                {submission.result_file_path && (
+                  <DropdownMenuItem
+                    className="cursor-pointer text-emerald-600"
+                    onClick={() => window.open(`/storage/${submission.result_file_path}`, '_blank')}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Hasil PDF
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-red-600"
+                  className="text-red-600 cursor-pointer"
                   onClick={() => handleDelete(submission.id)}
                 >
-                  Hapus Pengajuan
+                  Hapus Data
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

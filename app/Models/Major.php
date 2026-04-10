@@ -20,4 +20,9 @@ class Major extends Model
         'code',
         'lecture',
     ];
+
+    public function turnitinSubmissions()
+    {
+        return $this->hasMany(TurnitinSubmission::class);
+    }
 }

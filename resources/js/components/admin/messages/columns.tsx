@@ -3,24 +3,17 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Trash2, MessageSquareText, CheckCircle2, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { route } from "ziggy-js"; // Tambahkan ini
+import { route } from "ziggy-js";
 import type { Message } from "@/pages/admin/cms/Kontak";
 
-/* ======================
-   DELETE LOGIC
-====================== */
 const handleDelete = (id: number) => {
   if (confirm("Apakah Anda yakin ingin menghapus pesan ini?")) {
-    // Gunakan route() agar sinkron dengan Laravel
     router.delete(route('admin.messages.destroy', id), {
       preserveScroll: true,
     });
   }
 }
 
-/* ======================
-   COLUMNS DEFINITION
-====================== */
 export const columns = (
   onView: (message: Message) => void
 ): ColumnDef<Message>[] => [
@@ -41,12 +34,12 @@ export const columns = (
       accessorKey: "subjek",
       header: "Subjek & Pesan",
       cell: ({ row }) => (
-        <div className="flex flex-col max-w-[300px]">
-          <Badge variant="outline" className="w-fit mb-1 text-[10px] h-5">
+        <div className="flex flex-col max-w-[250px]">
+          <Badge variant="outline" className="w-fit mb-1 text-[10px] h-5 bg-indigo-50 text-indigo-700 border-indigo-200">
             {row.original.subjek}
           </Badge>
-          <p className="text-sm text-muted-foreground line-clamp-1">
-            {row.original.pesan}
+          <p className="text-sm text-muted-foreground line-clamp-1 italic">
+            "{row.original.pesan}"
           </p>
         </div>
       ),
@@ -61,13 +54,9 @@ export const columns = (
         return (
           <Badge
             variant={isSelesai ? "default" : "secondary"}
-            className={`gap-1.5 ${isSelesai ? "bg-green-500 hover:bg-green-600" : "bg-amber-100 text-amber-700 hover:bg-amber-200"}`}
+            className={`gap-1.5 ${isSelesai ? "bg-green-500 hover:bg-green-600" : "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200"}`}
           >
-            {isSelesai ? (
-              <CheckCircle2 className="h-3 w-3" />
-            ) : (
-              <Clock className="h-3 w-3" />
-            )}
+            {isSelesai ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
             {isSelesai ? "Selesai" : "Pending"}
           </Badge>
         );
@@ -75,7 +64,7 @@ export const columns = (
     },
     {
       accessorKey: "created_at",
-      header: "Tanggal",
+      header: "Tanggal Masuk",
       cell: ({ row }) => {
         const date = new Date(row.original.created_at);
         return (

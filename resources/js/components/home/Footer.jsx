@@ -14,11 +14,11 @@ export default function Footer() {
     const currentYear = new Date().getFullYear();
 
     const services = [
-        { name: 'Peminjaman Buku', href: '#' },
+        { name: 'Peminjaman Buku', href: 'https://pustaka.thamrin.ac.id/' },
         { name: 'Layanan Referensi', href: '#' },
-        { name: 'Layanan Sirkulasi', href: '#' },
-        { name: 'Bebas Pustaka', href: '#' },
-        { name: 'Uji Turnitin', href: '#' },
+        { name: 'Layanan Sirkulasi', href: '/layanan/sirkulasi' },
+        { name: 'Bebas Pustaka', href: '/layanan/bebas-pustaka' },
+        { name: 'Uji Turnitin', href: '/layanan/cek-turnitin' },
     ];
 
     const socials = [

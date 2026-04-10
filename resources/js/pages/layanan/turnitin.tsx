@@ -1,6 +1,8 @@
+import Footer from '@/Components/home/Footer';
+import Navbar from '@/Components/home/Navbar';
 import { Head, Link } from '@inertiajs/react'; // Tambahkan Link di sini
-import Footer from '@/components/home/Footer';
-import Navbar from '@/components/home/Navbar';
+
+
 import {
     ShieldCheck,
     FileSearch,
@@ -11,7 +13,7 @@ import {
     Percent
 } from 'lucide-react';
 
-export default function TurnitinService({ auth }) {
+export default function TurnitinService({ auth }: { auth: any }) {
     const turnitinSteps = [
         {
             title: "Pengiriman Berkas",
@@ -147,7 +149,7 @@ export default function TurnitinService({ auth }) {
                                     <div className="space-y-4">
                                         {/* PERBAIKAN: Menggunakan Link untuk navigasi form */}
                                         <Link
-                                            href="/form-cek-turnitin" // Sesuaikan dengan route form pengajuan Anda
+                                            href="/layanan/form-cek-turnitin" // Sesuaikan dengan route form pengajuan Anda
                                             className="w-full py-4 px-4 bg-teal-500 text-white rounded-2xl text-sm font-bold hover:bg-teal-400 transition-all active:scale-95 shadow-lg shadow-teal-900/20 text-center block"
                                         >
                                             Ajukan Cek Sekarang

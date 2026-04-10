@@ -1,9 +1,8 @@
 import { Head } from '@inertiajs/react';
-import Footer from '@/components/home/Footer';
-import Navbar from '@/components/home/Navbar';
+import Footer from '@/Components/home/Footer';
+import Navbar from '@/Components/home/Navbar';
 import {
     Info,
-    Monitor,
     ExternalLink,
     Microscope,
     Stethoscope,
@@ -15,31 +14,31 @@ import {
 export default function EJournalPage() {
     const journals = [
         {
-            name: "ScienceDirect",
+            name: "Gale OneFile: Nursing and Allied Health",
             field: "Bidang Kesehatan & Kedokteran",
             desc: "Akses ke ribuan artikel jurnal ilmiah multidisiplin dengan fokus utama pada riset kesehatan dan sains.",
-            link: "https://www.sciencedirect.com",
+            link: "https://link.gale.com/apps/PPNU?u=fjkthlt",
             icon: <Stethoscope className="text-emerald-600" />
         },
         {
-            name: "ProQuest",
+            name: "Gale OneFile: Science",
             field: "Bidang Teknik & Teknologi",
             desc: "Database komprehensif yang menyediakan koleksi jurnal, tesis, dan publikasi teknik dari seluruh dunia.",
-            link: "https://www.proquest.com",
+            link: "https://link.gale.com/apps/PPGS?u=fjktsci",
             icon: <Database className="text-teal-600" />
         },
         {
-            name: "EBSCOhost",
+            name: "Gale OneFile: Entrepreneurship",
             field: "Bidang Ekonomi & Bisnis",
             desc: "Sumber referensi terpercaya untuk jurnal ekonomi, manajemen, dan literatur bisnis internasional.",
-            link: "https://search.ebscohost.com",
+            link: "https://link.gale.com/apps/PPSB?u=fjktbus",
             icon: <Globe className="text-cyan-600" />
         },
         {
-            name: "SpringerLink",
+            name: "Gale Products",
             field: "Bidang Sosial & Humaniora",
             desc: "Akses ke jutaan dokumen ilmiah dalam bidang ilmu sosial, hukum, dan literatur akademik global.",
-            link: "https://link.springer.com",
+            link: "https://link.gale.com/apps/SPJ.SO00?u=jkthum",
             icon: <Microscope className="text-emerald-500" />
         }
     ];
@@ -54,9 +53,8 @@ export default function EJournalPage() {
                 <main className="pt-32 pb-16">
                     <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
-                        {/* HERO SECTION - UBAH WARNA KE EMERALD/TEAL */}
+                        {/* HERO SECTION */}
                         <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 border border-emerald-500/20 p-8 md:p-16 mb-12 shadow-2xl text-center">
-                            {/* Decorative background elements */}
                             <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl"></div>
                             <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-teal-500/10 blur-3xl"></div>
 
@@ -73,34 +71,36 @@ export default function EJournalPage() {
                             </div>
                         </div>
 
-                        {/* E-JOURNAL GRID - TAMPILAN LEBIH BERSIH */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                        {/* E-JOURNAL GRID */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                             {journals.map((journal, index) => (
                                 <a
                                     key={index}
                                     href={journal.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="group bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-200 hover:-translate-y-1 transition-all duration-300"
+                                    className="group bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-200 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                                 >
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="h-14 w-14 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                                            {journal.icon}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="h-14 w-14 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
+                                                {journal.icon}
+                                            </div>
+                                            <div className="p-2 rounded-full bg-slate-50 text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                                <ExternalLink size={16} />
+                                            </div>
                                         </div>
-                                        <div className="p-2 rounded-full bg-slate-50 text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                                            <ExternalLink size={16} />
-                                        </div>
-                                    </div>
 
-                                    <h3 className="text-xl font-bold text-slate-900 mb-1 group-hover:text-emerald-700 transition-colors">
-                                        {journal.name}
-                                    </h3>
-                                    <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-4">
-                                        {journal.field}
-                                    </p>
-                                    <p className="text-sm text-slate-500 leading-relaxed mb-6">
-                                        {journal.desc}
-                                    </p>
+                                        <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-emerald-700 transition-colors leading-snug">
+                                            {journal.name}
+                                        </h3>
+                                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-4">
+                                            {journal.field}
+                                        </p>
+                                        <p className="text-sm text-slate-500 leading-relaxed mb-6">
+                                            {journal.desc}
+                                        </p>
+                                    </div>
 
                                     <div className="flex items-center text-sm font-bold text-emerald-600">
                                         Buka Jurnal
@@ -110,62 +110,44 @@ export default function EJournalPage() {
                             ))}
                         </div>
 
-                        {/* INFO & BOOKING SECTION */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* TATA TERTIB PENGGUNAAN DIGITAL */}
-                            <div className="lg:col-span-2">
-                                <section className="rounded-[2.5rem] bg-white border border-slate-200 p-8 md:p-10 shadow-sm">
-                                    <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
-                                        <Info className="text-emerald-600" /> Panduan Akses E-Journal
-                                    </h2>
+                        {/* PANDUAN AKSES SECTION - Full Width */}
+                        <div className="w-full">
+                            <section className="rounded-[2.5rem] bg-white border border-slate-200 p-8 md:p-12 shadow-sm">
+                                <h2 className="text-2xl font-bold text-slate-900 mb-10 flex items-center gap-3">
+                                    <Info className="text-emerald-600" /> Panduan Akses E-Journal
+                                </h2>
 
-                                    <div className="grid md:grid-cols-2 gap-8">
-                                        <div className="space-y-6">
-                                            <div className="flex gap-4">
-                                                <div className="h-8 w-8 shrink-0 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">01</div>
-                                                <p className="text-sm text-slate-600 leading-relaxed">Gunakan jaringan WiFi kampus atau VPN UMHT untuk akses otomatis tanpa login (IP Based).</p>
-                                            </div>
-                                            <div className="flex gap-4">
-                                                <div className="h-8 w-8 shrink-0 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">02</div>
-                                                <p className="text-sm text-slate-600 leading-relaxed">Untuk akses dari luar kampus, gunakan akun SSO (Single Sign-On) yang telah diverifikasi perpustakaan.</p>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-6">
-                                            <div className="flex gap-4">
-                                                <div className="h-8 w-8 shrink-0 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">03</div>
-                                                <p className="text-sm text-slate-600 leading-relaxed">Dilarang memperjualbelikan atau mendistribusikan artikel jurnal secara ilegal.</p>
-                                            </div>
-                                            <div className="flex gap-4">
-                                                <div className="h-8 w-8 shrink-0 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">04</div>
-                                                <p className="text-sm text-slate-600 leading-relaxed">Hubungi admin IT Support jika mengalami kendala login pada masing-masing platform.</p>
-                                            </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                                    <div className="flex gap-4">
+                                        <div className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">01</div>
+                                        <div className="space-y-1">
+                                            <p className="font-bold text-slate-800 text-sm">Akses Jaringan</p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">Gunakan WiFi kampus atau VPN UMHT untuk akses otomatis (IP Based).</p>
                                         </div>
                                     </div>
-                                </section>
-                            </div>
-
-                            {/* IT SUPPORT / HELP DESK */}
-                            <div className="lg:col-span-1">
-                                <div className="rounded-[2.5rem] bg-slate-900 p-8 text-white shadow-lg h-full flex flex-col relative overflow-hidden">
-                                    <div className="absolute -top-10 -right-10 h-40 w-40 bg-emerald-500/10 rounded-full blur-2xl"></div>
-
-                                    <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-6 border border-emerald-500/30">
-                                        <Monitor className="text-emerald-400" />
+                                    <div className="flex gap-4">
+                                        <div className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">02</div>
+                                        <div className="space-y-1">
+                                            <p className="font-bold text-slate-800 text-sm">Akses SSO</p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">Gunakan akun Single Sign-On (SSO) untuk akses mandiri dari luar kampus.</p>
+                                        </div>
                                     </div>
-                                    <h3 className="text-xl font-bold mb-4">Bantuan IT & E-Resources</h3>
-                                    <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-                                        Kesulitan mengakses jurnal? Tim IT Support kami siap membantu Anda melakukan konfigurasi akun dan perangkat.
-                                    </p>
-                                    <div className="mt-auto space-y-3">
-                                        <button className="w-full py-4 px-4 bg-emerald-600 text-white rounded-2xl text-sm font-bold hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">
-                                            Hubungi Help Desk
-                                        </button>
-                                        <p className="text-[10px] text-center text-slate-500 uppercase tracking-[0.2em] font-bold">
-                                            Senin - Jumat | 08:00 - 16:00
-                                        </p>
+                                    <div className="flex gap-4">
+                                        <div className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">03</div>
+                                        <div className="space-y-1">
+                                            <p className="font-bold text-slate-800 text-sm">Etika Penggunaan</p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">Dilarang mendistribusikan artikel jurnal secara ilegal atau komersial.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">04</div>
+                                        <div className="space-y-1">
+                                            <p className="font-bold text-slate-800 text-sm">Kendala Login</p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">Pastikan akun telah diverifikasi oleh perpustakaan jika terjadi masalah login.</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </section>
                         </div>
 
                     </div>

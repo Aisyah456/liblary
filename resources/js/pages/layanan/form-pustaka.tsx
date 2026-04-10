@@ -1,7 +1,7 @@
 import Footer from '@/Components/home/Footer';
 import Navbar from '@/Components/home/Navbar';
 import { Head, useForm } from '@inertiajs/react';
-import { useMemo } from 'react'; // Untuk filtering prodi
+import { useMemo, FormEvent } from 'react';
 import {
     Send,
     UploadCloud,
@@ -28,7 +28,8 @@ interface Props {
     majors: Major[];
 }
 
-export default function LibraryFreeForm({ faculties, majors }) {
+export default function LibraryFreeForm({ faculties, majors }: Props) {
+    // Definisi Form dengan Inertia useForm
     const { data, setData, post, processing, errors, reset } = useForm({
         full_name: '',
         nim: '',
@@ -38,23 +39,30 @@ export default function LibraryFreeForm({ faculties, majors }) {
         major_id: '',
         degree_level: '',
         purpose: 'Yudisium',
-        entry_year: new Date().getFullYear() - 4,
-        graduation_year: new Date().getFullYear(),
-        scientific_paper_path: null,
-        ktm_scan_path: null,
-        upload_proof_path: null,
+        entry_year: (new Date().getFullYear() - 4).toString(),
+        graduation_year: new Date().getFullYear().toString(),
+        scientific_paper_path: null as File | null,
+        ktm_scan_path: null as File | null,
+        upload_proof_path: null as File | null,
     });
 
-    // Optimasi: Filter prodi berdasarkan fakultas yang dipilih
+    // Filter prodi berdasarkan fakultas yang dipilih
     const filteredMajors = useMemo(() => {
         if (!data.faculty_id) return [];
         return majors.filter(major => major.faculty_id === parseInt(data.faculty_id));
     }, [data.faculty_id, majors]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+
+        // Catatan: Pastikan di Controller menggunakan Request->file() 
+        // karena Inertia akan otomatis mengubah ke FormData jika ada File
         post(route('library-free.store'), {
-            onSuccess: () => reset(),
+            forceFormData: true,
+            onSuccess: () => {
+                alert('Pengajuan berhasil dikirim!');
+                reset();
+            },
         });
     };
 
@@ -62,7 +70,7 @@ export default function LibraryFreeForm({ faculties, majors }) {
         <>
             <Head title="Pengajuan Bebas Pustaka - Perpustakaan UMHT" />
             <div className="min-h-screen bg-slate-50/50">
-                <Navbar auth={undefined} />
+                <Navbar />
 
                 <main className="pt-32 pb-20">
                     <div className="mx-auto max-w-4xl px-6 lg:px-8">
@@ -88,6 +96,7 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             placeholder="Sesuai Ijazah"
                                             value={data.full_name}
                                             onChange={e => setData('full_name', e.target.value)}
+                                            required
                                         />
                                         {errors.full_name && <p className="text-xs text-rose-500 font-medium">{errors.full_name}</p>}
                                     </div>
@@ -99,6 +108,7 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             placeholder="Nomor Induk Mahasiswa"
                                             value={data.nim}
                                             onChange={e => setData('nim', e.target.value)}
+                                            required
                                         />
                                         {errors.nim && <p className="text-xs text-rose-500 font-medium">{errors.nim}</p>}
                                     </div>
@@ -110,17 +120,19 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             placeholder="mhs@umht.ac.id"
                                             value={data.email}
                                             onChange={e => setData('email', e.target.value)}
+                                            required
                                         />
                                         {errors.email && <p className="text-xs text-rose-500 font-medium">{errors.email}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">No. WhatsApp</label>
                                         <input
-                                            type="text"
+                                            type="tel"
                                             className={`w-full rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 ${errors.phone_number ? 'border-rose-500' : ''}`}
                                             placeholder="0812..."
                                             value={data.phone_number}
                                             onChange={e => setData('phone_number', e.target.value)}
+                                            required
                                         />
                                         {errors.phone_number && <p className="text-xs text-rose-500 font-medium">{errors.phone_number}</p>}
                                     </div>
@@ -139,9 +151,9 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             className="w-full rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
                                             value={data.faculty_id}
                                             onChange={e => {
-                                                setData('faculty_id', e.target.value);
-                                                setData('major_id', ''); // Reset prodi saat fakultas ganti
+                                                setData(d => ({ ...d, faculty_id: e.target.value, major_id: '' }));
                                             }}
+                                            required
                                         >
                                             <option value="">Pilih Fakultas</option>
                                             {faculties?.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -154,6 +166,7 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             value={data.major_id}
                                             disabled={!data.faculty_id}
                                             onChange={e => setData('major_id', e.target.value)}
+                                            required
                                         >
                                             <option value="">{data.faculty_id ? 'Pilih Prodi' : 'Pilih Fakultas Dulu'}</option>
                                             {filteredMajors.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -165,6 +178,7 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             className="w-full rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
                                             value={data.degree_level}
                                             onChange={e => setData('degree_level', e.target.value)}
+                                            required
                                         >
                                             <option value="">Pilih Jenjang</option>
                                             <option value="D3">Diploma (D3)</option>
@@ -190,13 +204,13 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             </span>
                                             {data.scientific_paper_path && (
                                                 <span className="text-xs text-emerald-600 font-bold mt-1 flex items-center justify-center gap-1">
-                                                    <CheckCircle2 size={14} /> {data.scientific_paper_path.name}
+                                                    <CheckCircle2 size={14} /> {(data.scientific_paper_path as File).name}
                                                 </span>
                                             )}
                                             <input
                                                 type="file"
                                                 className="hidden"
-                                                onChange={e => setData('scientific_paper_path', e.target.files[0])}
+                                                onChange={e => setData('scientific_paper_path', e.target.files ? e.target.files[0] : null)}
                                                 accept=".pdf"
                                             />
                                         </label>
@@ -209,7 +223,7 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             <input
                                                 type="file"
                                                 className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                                                onChange={e => setData('ktm_scan_path', e.target.files[0])}
+                                                onChange={e => setData('ktm_scan_path', e.target.files ? e.target.files[0] : null)}
                                                 accept="image/*"
                                             />
                                             {errors.ktm_scan_path && <p className="text-xs text-rose-500 mt-1">{errors.ktm_scan_path}</p>}
@@ -219,7 +233,7 @@ export default function LibraryFreeForm({ faculties, majors }) {
                                             <input
                                                 type="file"
                                                 className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300"
-                                                onChange={e => setData('upload_proof_path', e.target.files[0])}
+                                                onChange={e => setData('upload_proof_path', e.target.files ? e.target.files[0] : null)}
                                             />
                                         </div>
                                     </div>

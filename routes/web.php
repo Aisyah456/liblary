@@ -39,7 +39,11 @@ Route::prefix('layanan')->group(function () {
     Route::inertia('bebas-pustaka', 'layanan/bebas-pustaka')->name('pustakas');
     Route::inertia('form-bebas-pustaka', 'layanan/form-pustaka')->name('form-bebas-pustaka');
     Route::inertia('cek-turnitin', 'layanan/turnitin')->name('cek-turnitin');
-    Route::inertia('form-cek-turnitin', 'layanan/ajuan-cek')->name('form-cek-turnitin');
+
+    Route::get('/form-cek-turnitin', [App\Http\Controllers\TurnitinSubmissionController::class, 'create'])->name('form-cek-turnitin.create');
+    Route::post('/form-cek-turnitin/store', [App\Http\Controllers\TurnitinSubmissionController::class, 'store'])->name('form-cek-turnitin.store');
+
+
     Route::inertia('e-journal', 'layanan/journals')->name('e-journal');
     Route::inertia('form-pustaka', 'layanan/form-pustaka')->name('form-pustaka');
     Route::get('kontak', [App\Http\Controllers\Api\MessageController::class, 'index'])->name('messages.index');
@@ -68,11 +72,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('admin')->group(function () {
             Route::resource('partners', App\Http\Controllers\PartnerController::class);
-            Route::resource('articles', App\Http\Controllers\ArticleController::class);
+            Route::resource('articles', App\Http\Controllers\Api\ArticleController::class);
             Route::resource('services', App\Http\Controllers\ServiceController::class);
             Route::post('news/{news}', [App\Http\Controllers\Cms\NewsController::class, 'update'])->name('news.update.post');
             Route::resource('news', App\Http\Controllers\Cms\NewsController::class);
-            Route::resource('messages', App\Http\Controllers\Cms\MessageController::class);
+            Route::get('/messages', [App\Http\Controllers\Cms\MessageController::class, 'index'])->name('messages.index');
+            Route::resource('turnitin', App\Http\Controllers\TurnitinProcessController::class);
         });
     });
 

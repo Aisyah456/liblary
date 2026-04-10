@@ -134,9 +134,12 @@ export default function Circulation() {
                                     <p className="text-indigo-100 text-sm mb-8 leading-relaxed">
                                         Pantau tanggal jatuh tempo dan lakukan perpanjangan mandiri melalui portal anggota kami secara real-time.
                                     </p>
-                                    <button className="w-full py-4 px-4 bg-white text-indigo-600 rounded-2xl text-sm font-bold hover:bg-indigo-50 transition-all active:scale-95">
+                                    <a
+                                        href="https://pustaka.thamrin.ac.id/"
+                                        className="w-full py-4 px-4 bg-white text-indigo-600 rounded-2xl text-sm font-bold hover:bg-indigo-50 transition-all active:scale-95 text-center inline-block"
+                                    >
                                         Login Area Anggota
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>

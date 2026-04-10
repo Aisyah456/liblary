@@ -1,28 +1,38 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Article;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Article;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
 {
-
     public function index()
     {
-        $articles = Article::orderBy('created_at', 'desc')->get();
+        $articles = Article::orderBy('created_at', 'desc')->get()->map(function ($article) {
+            return [
+                'id' => $article->id,
+                'title' => $article->title,
+                'category' => $article->category,
+                'excerpt' => $article->excerpt,
+                'content' => $article->content,
+                'is_featured' => $article->is_featured,
+                'reading_time' => $article->reading_time,
+                // Pastikan thumbnail mengarah ke URL yang benar
+                'thumbnail' => $article->thumbnail ? asset('storage/' . $article->thumbnail) : null,
+                'created_at' => $article->created_at,
+            ];
+        });
 
         return Inertia::render('admin/cms/Article', [
             'articles' => $articles
         ]);
     }
 
-    /**
-     * Menyimpan artikel baru
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -35,11 +45,12 @@ class ArticleController extends Controller
             'is_featured'  => 'boolean',
         ]);
 
-        // Slug otomatis
         $validated['slug'] = Str::slug($request->title) . '-' . Str::random(5);
 
         if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')->store('articles', 'public');
+            // Store hanya mengembalikan path relative: "articles/namafile.jpg"
+            $path = $request->file('thumbnail')->store('articles', 'public');
+            $validated['thumbnail'] = $path;
         }
 
         Article::create($validated);
@@ -47,9 +58,6 @@ class ArticleController extends Controller
         return redirect()->back()->with('success', 'Artikel berhasil diterbitkan!');
     }
 
-    /**
-     * Update artikel (Tambahkan ini jika Anda punya EditArticleModal)
-     */
     public function update(Request $request, Article $article)
     {
         $validated = $request->validate([
@@ -57,17 +65,22 @@ class ArticleController extends Controller
             'category'     => 'required|in:Berita Utama,Akademik,Koleksi,Event,Layanan',
             'content'      => 'required',
             'excerpt'      => 'required|string|max:500',
-            'thumbnail'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'thumbnail'    => 'nullable', // Ubah ke nullable dulu untuk pengecekan manual
             'reading_time' => 'nullable|integer',
             'is_featured'  => 'boolean',
         ]);
 
         if ($request->hasFile('thumbnail')) {
-            // Hapus foto lama jika ada
+            // Validasi manual jika ada file baru
+            $request->validate(['thumbnail' => 'image|mimes:jpg,jpeg,png|max:2048']);
+
             if ($article->thumbnail) {
                 Storage::disk('public')->delete($article->thumbnail);
             }
             $validated['thumbnail'] = $request->file('thumbnail')->store('articles', 'public');
+        } else {
+            // Jika tidak upload foto baru, tetap gunakan foto lama
+            unset($validated['thumbnail']);
         }
 
         $article->update($validated);
@@ -75,9 +88,6 @@ class ArticleController extends Controller
         return redirect()->back()->with('success', 'Artikel berhasil diperbarui!');
     }
 
-    /**
-     * Menghapus artikel
-     */
     public function destroy(Article $article)
     {
         if ($article->thumbnail) {

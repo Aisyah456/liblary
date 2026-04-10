@@ -1,5 +1,5 @@
 import { useForm } from "@inertiajs/react";
-import { Percent, FileCheck, Calendar as CalendarIcon } from "lucide-react";
+import { Percent, FileCheck, Info } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,30 +26,35 @@ interface ProcessTurnitinModalProps {
     isOpen: boolean;
     onClose: () => void;
     submission: TurnitinSubmission | null;
-    onUpdate: (updated: TurnitinSubmission) => void;
 }
 
-export default function ProcessTurnitinModal({ isOpen, onClose, submission, onUpdate }: ProcessTurnitinModalProps) {
+export default function ProcessTurnitinModal({ isOpen, onClose, submission }: ProcessTurnitinModalProps) {
+    // Definisi form disesuaikan dengan kolom di database
     const { data, setData, post, processing, reset, errors } = useForm({
-        submission_id: "",
-        similarity_percentage: "",
-        check_date: new Date().toISOString().split('T')[0],
-        librarian_notes: "",
-        verdict: "", // Lulus / Revisi / Ditolak
-        evidence_file: null as File | null,
+        _method: 'PATCH', // Menggunakan spoofing method karena Laravel PATCH sering bermasalah dengan FormData
+        similarity_percentage: "" as string | number,
+        status: "" as 'pending' | 'processing' | 'completed' | 'rejected',
+        admin_notes: "",
+        result_file: null as File | null,
     });
 
-    // Sinkronisasi data saat submission terpilih berganti
+    // Sinkronisasi data awal jika submission sudah memiliki hasil sebelumnya
     useEffect(() => {
         if (submission) {
-            setData("submission_id", submission.id.toString());
+            setData({
+                ...data,
+                similarity_percentage: submission.similarity_percentage ?? "",
+                status: submission.status,
+                admin_notes: submission.admin_notes ?? "",
+            });
         }
     }, [submission]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        post("/admin/turnitin/results", {
+        // Pastikan endpoint sesuai dengan route controller Anda
+        post(route('admin.turnitin.update', submission?.id), {
             onSuccess: () => {
                 onClose();
                 reset();
@@ -62,93 +67,89 @@ export default function ProcessTurnitinModal({ isOpen, onClose, submission, onUp
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <FileCheck className="h-5 w-5 text-indigo-600" />
-                        Input Hasil Turnitin
+                    <DialogTitle className="flex items-center gap-2 text-slate-900">
+                        <FileCheck className="h-5 w-5 text-teal-600" />
+                        Proses Hasil Turnitin
                     </DialogTitle>
-                    <DialogDescription>
-                        Masukkan detail hasil pengecekan untuk: <br />
-                        <span className="font-semibold text-slate-900">{submission?.title}</span>
+                    <DialogDescription className="pt-2">
+                        Update status dan unggah hasil pengecekan untuk: <br />
+                        <span className="font-semibold text-indigo-600 italic">"{submission?.title}"</span>
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4 py-2">
                     <div className="grid grid-cols-2 gap-4">
-                        {/* Persentase Similarity */}
+                        {/* Persentase Similarity (similarity_percentage) */}
                         <div className="space-y-1">
-                            <Label htmlFor="similarity_percentage">Persentase Similarity</Label>
+                            <Label htmlFor="similarity_percentage">Similarity (%)</Label>
                             <div className="relative">
                                 <Input
                                     id="similarity_percentage"
                                     type="number"
-                                    placeholder="Contoh: 15"
+                                    min="0"
+                                    max="100"
+                                    placeholder="0-100"
                                     value={data.similarity_percentage}
                                     onChange={(e) => setData("similarity_percentage", e.target.value)}
                                     className="pr-8"
-                                    required
+                                    required={data.status === 'completed'}
                                 />
                                 <Percent className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
                             </div>
                             {errors.similarity_percentage && <p className="text-xs text-red-500">{errors.similarity_percentage}</p>}
                         </div>
 
-                        {/* Tanggal Pengecekan */}
+                        {/* Workflow Status (status) */}
                         <div className="space-y-1">
-                            <Label htmlFor="check_date">Tanggal Pengecekan</Label>
-                            <div className="relative">
-                                <Input
-                                    id="check_date"
-                                    type="date"
-                                    value={data.check_date}
-                                    onChange={(e) => setData("check_date", e.target.value)}
-                                    required
-                                />
-                            </div>
+                            <Label htmlFor="status">Update Status</Label>
+                            <Select
+                                value={data.status}
+                                onValueChange={(value: any) => setData("status", value)}
+                                required
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="processing">Sedang Diproses</SelectItem>
+                                    <SelectItem value="completed">Selesai (Completed)</SelectItem>
+                                    <SelectItem value="rejected">Ditolak (Rejected)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.status && <p className="text-xs text-red-500">{errors.status}</p>}
                         </div>
                     </div>
 
-                    {/* Keputusan / Verdict */}
+                    {/* Upload Hasil PDF (result_file_path) */}
                     <div className="space-y-1">
-                        <Label htmlFor="verdict">Status Kelulusan</Label>
-                        <Select onValueChange={(value) => setData("verdict", value)} required>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Pilih hasil keputusan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Lulus">Lulus (Di bawah ambang batas)</SelectItem>
-                                <SelectItem value="Revisi">Revisi (Similarity tinggi)</SelectItem>
-                                <SelectItem value="Ditolak">Ditolak (Indikasi kecurangan)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Catatan Pustakawan */}
-                    <div className="space-y-1">
-                        <Label htmlFor="librarian_notes">Catatan Pustakawan</Label>
-                        <Textarea
-                            id="librarian_notes"
-                            placeholder="Tambahkan catatan jika perlu..."
-                            value={data.librarian_notes}
-                            onChange={(e) => setData("librarian_notes", e.target.value)}
-                            className="h-20"
-                        />
-                    </div>
-
-                    {/* Upload Bukti Hasil */}
-                    <div className="space-y-1">
-                        <Label htmlFor="evidence_file">Upload Bukti (PDF / Screenshot)</Label>
+                        <Label htmlFor="result_file">Upload File Hasil (PDF)</Label>
                         <Input
-                            id="evidence_file"
+                            id="result_file"
                             type="file"
-                            accept=".pdf,image/*"
-                            onChange={(e) => setData("evidence_file", e.target.files ? e.target.files[0] : null)}
-                            required
+                            accept=".pdf"
+                            onChange={(e) => setData("result_file", e.target.files ? e.target.files[0] : null)}
+                            required={data.status === 'completed'}
                         />
-                        <p className="text-[10px] text-slate-500 italic">*Wajib melampirkan file hasil dari sistem Turnitin.</p>
-                        {errors.evidence_file && <p className="text-xs text-red-500">{errors.evidence_file}</p>}
+                        <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-1">
+                            <Info className="h-3 w-3" /> File hasil Turnitin akan dapat diunduh oleh pengaju.
+                        </p>
+                        {errors.result_file && <p className="text-xs text-red-500">{errors.result_file}</p>}
                     </div>
 
-                    <DialogFooter className="pt-4">
+                    {/* Catatan Admin (admin_notes) */}
+                    <div className="space-y-1">
+                        <Label htmlFor="admin_notes">Catatan Admin / Alasan Penolakan</Label>
+                        <Textarea
+                            id="admin_notes"
+                            placeholder="Tambahkan catatan atau alasan jika pengajuan ditolak..."
+                            value={data.admin_notes}
+                            onChange={(e) => setData("admin_notes", e.target.value)}
+                            className="h-24 resize-none"
+                        />
+                        {errors.admin_notes && <p className="text-xs text-red-500">{errors.admin_notes}</p>}
+                    </div>
+
+                    <DialogFooter className="pt-4 gap-2">
                         <Button
                             type="button"
                             variant="outline"
@@ -159,14 +160,18 @@ export default function ProcessTurnitinModal({ isOpen, onClose, submission, onUp
                         </Button>
                         <Button
                             type="submit"
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                            className="bg-teal-600 hover:bg-teal-700 text-white"
                             disabled={processing}
                         >
-                            {processing ? "Menyimpan..." : "Simpan Hasil & Selesaikan"}
+                            {processing ? "Memperbarui..." : "Update Pengajuan"}
                         </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
     );
+}
+
+function route(arg0: string, id: number | undefined): string {
+    throw new Error("Function not implemented.");
 }

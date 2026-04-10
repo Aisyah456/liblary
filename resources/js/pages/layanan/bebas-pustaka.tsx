@@ -131,7 +131,7 @@ export default function Clearance() {
                                     </p>
 
                                     <Link
-                                        href="/layanan/form-pustaka"
+                                        href="/layanan/form-bebas-pustaka"
                                         className="w-full py-4 px-4 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-black transition-all active:scale-95 shadow-lg text-center block"
                                     >
                                         Mulai Pengajuan Digital

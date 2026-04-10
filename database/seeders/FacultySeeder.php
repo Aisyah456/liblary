@@ -14,12 +14,11 @@ class FacultySeeder extends Seeder
     public function run(): void
     {
         $faculties = [
-            ['code' => 'FT', 'name' => 'Fakultas Teknik'],
             ['code' => 'FEB', 'name' => 'Fakultas Ekonomi dan Bisnis'],
-            ['code' => 'FH', 'name' => 'Fakultas Hukum'],
-            ['code' => 'FK', 'name' => 'Fakultas Kedokteran'],
-            ['code' => 'FISIP', 'name' => 'Fakultas Ilmu Sosial dan Politik'],
-            ['code' => 'FP', 'name' => 'Fakultas Pertanian'],
+            ['code' => 'FKES', 'name' => 'Fakultas Kesehatan'],
+            ['code' => 'FKIP', 'name' => 'Fakultas Keguruan dan Ilmu Pendidikan'],
+            ['code' => 'FKOM', 'name' => 'Fakultas Komputer'],
+            ['code' => 'UMHT', 'name' => 'Universitas Mohammad Husni Thamrin Jakarta'],
         ];
 
         foreach ($faculties as $faculty) {

@@ -87,7 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             { title: "Profil Perpustakaan", url: '#' },
             { title: "Fasilitas & Layanan", url: '/admin/services' },
             { title: "Testimoni Pustaka", url: '/cms/feedback' },
-            { title: "FAQ", url: '#' },
+            { title: "FAQ", url: '/admin/messages' },
           ],
         },
         // 2️⃣ Organisasi (Pembaruan: Sesuai permintaan Anda)
