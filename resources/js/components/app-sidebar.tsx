@@ -171,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "#",
           icon: FileText,
           items: [
-            { title: "Validasi Turnitin", url: '#' },
+            { title: "Validasi Turnitin", url: '/admin/turnitin' },
             { title: "Bebas Pustaka", url: '#' },
             { title: "Usulan Buku Baru", url: '#' },
           ],

@@ -45,7 +45,7 @@ Route::prefix('layanan')->group(function () {
 
 
     Route::inertia('e-journal', 'layanan/journals')->name('e-journal');
-    Route::inertia('form-pustaka', 'layanan/form-pustaka')->name('form-pustaka');
+
     Route::get('kontak', [App\Http\Controllers\Api\MessageController::class, 'index'])->name('messages.index');
 });
 
