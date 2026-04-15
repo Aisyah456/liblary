@@ -15,11 +15,19 @@ class HandleAppearance
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        $appearance = $request->cookie('appearance') ?? 'system';
-        Inertia::share('appearance', $appearance);
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
+        // Mengambil profil pertama, jika tidak ada maka null
+        $profile = \App\Models\LibraryProfile::first();
+
+        // Pastikan data dikirim ke Inertia secara aman
+        Inertia::share([
+            'appearance' => [
+                'title' => $profile->about_title ?? 'Default Title',
+                'logo' => $profile->logo ?? '/default-logo.png',
+                // Tambahkan data lainnya
+            ],
+        ]);
 
         return $next($request);
     }

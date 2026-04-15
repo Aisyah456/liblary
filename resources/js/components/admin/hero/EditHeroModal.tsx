@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { HeroRow } from "@/pages/admin/cms/Hero";
+import { route } from 'ziggy-js';
 
 interface EditHeroModalProps {
     isOpen: boolean;
@@ -74,7 +75,7 @@ export default function EditHeroModal({ isOpen, onClose, hero }: EditHeroModalPr
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-160 max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Banner Hero</DialogTitle>
                     <DialogDescription>

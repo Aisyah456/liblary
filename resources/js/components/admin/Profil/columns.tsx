@@ -84,7 +84,7 @@ export const columns = (
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="font-semibold text-sm">{row.original.name}</span>
-          <span className="text-[11px] text-muted-foreground">{row.original.type?.toUpperCase() || 'N/A'}</span>
+          <span className="text-[11px] text-muted-foreground">{row.original.type.toUpperCase()}</span>
         </div>
       ),
     },

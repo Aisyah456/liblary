@@ -18,13 +18,15 @@ class MessageController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_lengkap' => 'required',
+            'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|email',
-            'subjek' => 'required',
-            'pesan' => 'required',
+            'subjek' => 'required|string|max:255',
+            'pesan' => 'required|string',
         ]);
 
-        Message::create($validated);
-        return Redirect::back()->with('success', 'Berhasil!');
+        // Simpan ke database (Pastikan model Message sudah ada)
+        \App\Models\Message::create($validated);
+
+        return redirect()->back()->with('success', 'Pesan Anda berhasil dikirim!');
     }
 }

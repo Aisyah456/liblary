@@ -13,19 +13,32 @@ export const columns = (onEdit: (row: HeroRow) => void): ColumnDef<HeroRow>[] =>
         cell: ({ row }) => {
             const imagePath = row.original.image_path;
             // Cek apakah imagePath adalah URL lengkap atau path lokal storage
-            const imageUrl = imagePath?.startsWith('http')
-                ? imagePath
-                : `/storage/${imagePath}`;
+            let imageUrl = "";
+
+            if (!imagePath) {
+                imageUrl = "https://placehold.co/600x400?text=No+Image";
+            } else if (imagePath.startsWith('http')) {
+                // Jika sudah URL lengkap (misal dari S3 atau CDN)
+                imageUrl = imagePath;
+            } else {
+                // Pastikan tidak ada double slash dan diarahkan ke path public storage
+                // Gunakan replace untuk membersihkan jika di DB tersimpan '/storage/abc.jpg'
+                const cleanPath = imagePath.replace(/^\//, '');
+                imageUrl = `/storage/${cleanPath}`;
+            }
 
             return (
-                <div className="relative h-12 w-20 overflow-hidden rounded-md border bg-muted">
+                <div className="relative h-12 w-20 overflow-hidden rounded-md border bg-muted flex items-center justify-center">
                     <img
                         src={imageUrl}
                         className="h-full w-full object-cover"
                         alt="banner preview"
+                        // Handle error jika file fisik tidak ada di server
                         onError={(e) => {
-                            // Fallback jika gambar rusak
-                            (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=No+Image";
+                            const target = e.target as HTMLImageElement;
+                            if (target.src !== "https://placehold.co/600x400?text=Not+Found") {
+                                target.src = "https://placehold.co/600x400?text=Not+Found";
+                            }
                         }}
                     />
                 </div>

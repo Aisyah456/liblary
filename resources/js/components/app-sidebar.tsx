@@ -3,7 +3,6 @@
 import { Link, usePage } from "@inertiajs/react"
 import {
   BookOpen,
-  UserIcon,
   LayoutGrid,
   ShieldCheck,
   LibraryBig,
@@ -13,24 +12,15 @@ import {
   UserCheck,
   Book,
   FileJson,
-  GraduationCap,
   ArrowRightLeft,
-  FilePlus,
-  CircleDot,
   Settings2,
   LayoutDashboard,
   Newspaper,
-  Library,
   Repeat,
   FileText,
   Mail,
-  Building2, // Icon baru untuk Organisasi
-  HelpCircle,
+  Building2,
   Image as ImageIcon,
-  ScrollText,
-  Briefcase,
-  History,
-  CheckCircle2,
   FolderTree,
 } from "lucide-react"
 import * as React from "react"
@@ -77,44 +67,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Content Management",
       icon: ShieldCheck,
       menus: [
-        // 1️⃣ Landing Page Management
         {
           title: "Landing Page",
           url: "#",
           icon: ImageIcon,
           items: [
             { title: "Banner / Slider", url: '/cms/hero' },
-            { title: "Profil Perpustakaan", url: '#' },
+            { title: "Profil Perpustakaan", url: '/admin/profile' },
             { title: "Fasilitas & Layanan", url: '/admin/services' },
-            { title: "Testimoni Pustaka", url: '/cms/feedback' },
+            { title: "Testimoni Pustaka", url: '/admin/feedback' },
             { title: "FAQ", url: '/admin/messages' },
           ],
         },
-        // 2️⃣ Organisasi (Pembaruan: Sesuai permintaan Anda)
         {
           title: "Organisasi",
           url: "#",
           icon: Building2,
           items: [
-            { title: "Struktur Organisasi", url: '/admin/partners' },
-            { title: "Daftar Staf/Pustakawan", url: '#' },
-            { title: "Visi & Misi", url: '#' },
+            // Gunakan rute /admin/staff untuk mengelola database library_staff
+            { title: "Struktur Organisasi", url: '/admin/staff' },
             { title: "Partner / Mitra", url: '/admin/partners' },
           ],
         },
-        // 3️⃣ Publikasi
         {
           title: "Publikasi",
           url: "#",
           icon: Newspaper,
           items: [
             { title: "Berita Utama", url: '/admin/news' },
-            //masih belum muncul
             { title: "Artikel & Blog", url: '/admin/articles' },
-            { title: "Kategori Publikasi", url: '#' },
-            { title: "Pengumuman", url: '#' },
+            { title: "Pengumuman", url: '/admin/announcements' },
           ],
-        },
+        }, // PERBAIKAN: Karakter '#' yang salah telah dihapus dari sini
       ],
     },
     {
@@ -239,7 +223,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
       {...props}
     >
-      {/* SIDEBAR 1: IKON NAVIGASI */}
       <Sidebar
         collapsible="none"
         className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r bg-sidebar"
@@ -285,7 +268,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarFooter>
       </Sidebar>
 
-      {/* SIDEBAR 2: PANEL DETAIL */}
       <Sidebar collapsible="none" className="hidden flex-1 md:flex">
         <SidebarHeader className="border-b p-4">
           <div className="flex flex-col gap-0.5">

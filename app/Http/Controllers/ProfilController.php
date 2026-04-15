@@ -2,75 +2,85 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LibraryProfile;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProfilController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        // Data Dummy untuk mensimulasikan database
-        $newsData = [
-            [
-                'id' => 1,
-                'title' => 'Visi dan Misi Baru Perpustakaan UMHT 2026',
-                'slug' => 'visi-misi-baru-2026',
-                'thumbnail' => 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000',
-                'category' => 'INTERNAL',
-                'excerpt' => 'Perpustakaan UMHT menetapkan langkah strategis baru untuk menjadi pusat riset digital terdepan.',
-                'body' => 'Isi konten lengkap visi dan misi...',
-                'published_at' => now()->toDateTimeString(),
-                'is_featured' => true,
-                'author_id' => 1,
-                'created_at' => now()->toDateTimeString(),
-                'updated_at' => now()->toDateTimeString(),
-            ],
-            [
-                'id' => 2,
-                'title' => 'Peningkatan Fasilitas Ruang Baca Digital',
-                'slug' => 'fasilitas-ruang-baca-digital',
-                'thumbnail' => 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=1000',
-                'category' => 'FASILITAS',
-                'excerpt' => 'Kini tersedia 20 unit komputer baru dengan akses jurnal internasional premium.',
-                'body' => 'Isi konten fasilitas...',
-                'published_at' => now()->subDays(2)->toDateTimeString(),
-                'is_featured' => false,
-                'author_id' => 1,
-                'created_at' => now()->toDateTimeString(),
-                'updated_at' => now()->toDateTimeString(),
-            ],
-        ];
-
-        // Struktur yang sesuai dengan format Pagination (Props news.data)
-        $news = [
-            'data' => $newsData,
-            'current_page' => 1,
-            'last_page' => 1,
-            'per_page' => 10,
-            'total' => count($newsData),
-            'from' => 1,
-            'to' => count($newsData),
-            'links' => [
-                [
-                    'url' => null,
-                    'label' => '&laquo; Previous',
-                    'active' => false,
-                ],
-                [
-                    'url' => '/profil',
-                    'label' => '1',
-                    'active' => true,
-                ],
-                [
-                    'url' => null,
-                    'label' => 'Next &raquo;',
-                    'active' => false,
-                ],
-            ],
-        ];
-
-        return Inertia::render('profil/Index', [
-            'news' => $news,
+        return Inertia::render('admin/cms/Profil', [
+            'profiles' => LibraryProfile::all(),
         ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('admin/cms/ProfilForm');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'about_title' => 'required|string|max:255',
+            'about_description' => 'required|string',
+            'vision' => 'required|string',
+            'mission' => 'required|array',
+            'total_books' => 'required|integer',
+            'total_staff' => 'required|integer',
+            'service_hours_weekday' => 'required|string',
+            'service_hours_weekend' => 'required|string',
+        ]);
+
+        LibraryProfile::create($validated);
+
+        return redirect()->route('admin.profile.index')->with('success', 'Profil berhasil dibuat');
+    }
+
+    /**
+     * Menampilkan halaman edit (LibraryProfileEdit)
+     */
+    public function edit($id)
+    {
+        $profile = LibraryProfile::findOrFail($id);
+
+        return Inertia::render('admin/cms/LibraryProfileEdit', [
+            'profile' => $profile
+        ]);
+    }
+
+    /**
+     * Memproses pembaruan data
+     */
+    public function update(Request $request, $id)
+    {
+        $profile = LibraryProfile::findOrFail($id);
+
+        $validated = $request->validate([
+            'about_title' => 'required|string|max:255',
+            'about_description' => 'required|string',
+            'vision' => 'required|string',
+            'mission' => 'required|array',
+            'total_books' => 'required|integer',
+            'total_staff' => 'required|integer',
+            'service_hours_weekday' => 'required|string',
+            'service_hours_weekend' => 'required|string',
+        ]);
+
+        $profile->update($validated);
+
+        return redirect()->route('admin.profile.index')->with('success', 'Profil berhasil diperbarui');
+    }
+
+    public function show($id)
+    {
+        // Jika tidak butuh halaman detail, arahkan saja ke halaman edit
+        return redirect()->route('admin.profile.edit', $id);
+    }
+    public function destroy($id)
+    {
+        LibraryProfile::findOrFail($id)->delete();
+        return redirect()->back()->with('success', 'Profil berhasil dihapus');
     }
 }

@@ -1,14 +1,13 @@
 import { Head } from '@inertiajs/react';
 import { Mail, Clock } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
-// HAPUS: import { route } from 'ziggy-js';
-// Biarkan global 'route' yang bekerja atau gunakan window.route jika di TypeScript
 
 import { columns } from '@/components/admin/messages/columns';
 import { DataTable } from '@/components/admin/messages/data-table';
 import ReplyMessageModal from '@/components/admin/messages/ReplyMessageModal';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+
 
 export interface Message {
     id: number;
@@ -40,27 +39,42 @@ export default function MessagesIndex({ messages }: MessagesProps) {
 
     const closeReplyModal = () => {
         setIsReplyModalOpen(false);
-        // Reset message setelah animasi modal selesai (biasanya 200-300ms)
+        // Reset message setelah animasi modal selesai (smooth transition)
         setTimeout(() => setSelectedMessage(null), 300);
     };
 
     /* ================= COMPUTED ================= */
-    // Gunakan useMemo agar tidak dihitung ulang setiap render kecil
     const pendingCount = useMemo(() =>
         messages.filter(m => m.status === 'pending').length
         , [messages]);
 
-    // Definisikan breadcrumbs di dalam komponen agar 'route' tersedia secara global
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            label: 'Dashboard',
-            href: typeof route !== 'undefined' ? route('admin.dashboard') : '/admin'
-        },
-        {
-            label: 'Pesan Kontak',
-            href: '#'
-        },
-    ];
+    /* ================= BREADCRUMBS ================= */
+    const breadcrumbs: BreadcrumbItem[] = useMemo(() => {
+        /**
+         * Helper untuk mencegah aplikasi blank jika rute tidak ditemukan.
+         * Ini sangat berguna saat proses pengembangan.
+         */
+        const getSafeRoute = (name: string, fallback: string) => {
+            try {
+                // @ts-ignore - Mengabaikan cek TS jika route dianggap tidak ada secara global
+                return route(name);
+            } catch (e) {
+                console.error(`Route error: ${name} is missing.`);
+                return fallback;
+            }
+        };
+
+        return [
+            {
+                label: 'Dashboard',
+                href: getSafeRoute('admin.dashboard', '/admin'),
+            },
+            {
+                label: 'Pesan Kontak',
+                href: '#',
+            },
+        ];
+    }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -94,6 +108,7 @@ export default function MessagesIndex({ messages }: MessagesProps) {
                 {/* TABLE SECTION */}
                 <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
                     <DataTable
+                        // @ts-ignore
                         columns={columns(handleReply)}
                         data={messages}
                         searchKey="nama_lengkap"

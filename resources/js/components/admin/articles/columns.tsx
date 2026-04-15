@@ -1,9 +1,10 @@
 import { router } from "@inertiajs/react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit, Trash2, ExternalLink, Image as ImageIcon } from "lucide-react";
+import { Edit, Trash2, ExternalLink, Image as ImageIcon, Eye, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /* =====================
     TYPES
@@ -29,8 +30,8 @@ const handleDelete = (id: number) => {
     if (confirm("Apakah Anda yakin ingin menghapus artikel ini?")) {
         router.delete(`/admin/articles/${id}`, {
             preserveScroll: true,
-            onError: () => {
-                alert("Gagal menghapus artikel.");
+            onSuccess: () => {
+            // Tambahkan toast notification di sini jika ada
             },
         });
     }
@@ -47,38 +48,64 @@ export const columns = (
             header: ({ table }) => (
                 <Checkbox
                     checked={table.getIsAllPageRowsSelected()}
-                    onCheckedChange={(value) =>
-                        table.toggleAllPageRowsSelected(!!value)
-                    }
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label="Select all"
+                    className="translate-y-[2px]"
                 />
             ),
             cell: ({ row }) => (
                 <Checkbox
                     checked={row.getIsSelected()}
                     onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label="Select row"
+                    className="translate-y-[2px]"
                 />
             ),
             enableSorting: false,
             enableHiding: false,
         },
-
         /* ================= THUMBNAIL ================= */
         {
-            accessorKey: "thumbnail",
+            id: "thumbnail", // ID Eksplisit agar tidak ada warning di console
             header: "Thumbnail",
             cell: ({ row }) => {
                 const img = row.original.thumbnail;
 
+                // Fungsi Helper yang sangat ketat
+                const getImageUrl = (path: string | null | undefined) => {
+                    if (!path) return null;
+
+                    // Jika path adalah URL lengkap (dimulai dengan http), JANGAN tambah /storage/
+                    if (path.includes('http://') || path.includes('https://')) {
+                        // Kadang data kotor: "http://127.0.0.1:8000/storage/https://picsum..."
+                        // Kita ambil bagian setelah https:// terakhir
+                        const parts = path.split('https://');
+                        if (parts.length > 2) return 'https://' + parts[parts.length - 1];
+                        return path;
+                    }
+
+                    // Jika path lokal, pastikan tidak ada double slash
+                    const cleanPath = path.replace(/^\//, '');
+                    return `/storage/${cleanPath}`;
+                };
+
+                const finalUrl = getImageUrl(img);
+
                 return (
-                    <div className="h-12 w-16 overflow-hidden rounded border bg-slate-50 flex items-center justify-center">
-                        {img ? (
+                    <div className="h-10 w-14 shrink-0 overflow-hidden rounded-md border bg-muted flex items-center justify-center">
+                        {finalUrl ? (
                             <img
-                                src={`/storage/${img}`}
-                                alt="thumbnail"
+                                src={finalUrl}
+                                alt="thumb"
                                 className="h-full w-full object-cover"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.onerror = null;
+                                    target.src = "https://placehold.co/400x300?text=Error+Load";
+                                }}
                             />
                         ) : (
-                            <ImageIcon className="h-4 w-4 text-slate-400" />
+                                <ImageIcon className="h-4 w-4 text-muted-foreground/30" />
                         )}
                     </div>
                 );
@@ -87,7 +114,8 @@ export const columns = (
 
         /* ================= TITLE ================= */
         {
-            accessorKey: "title",
+            accessorKey: "title", // Pastikan ini sama dengan key di ArticleRow
+            id: "title",          // Tambahkan ini untuk menghilangkan warning "Column with id 'title' does not exist"
             header: "Judul Artikel",
             cell: ({ row }) => (
                 <div className="flex flex-col max-w-[250px]">
@@ -95,111 +123,145 @@ export const columns = (
                         {row.original.title}
                     </span>
                     <span className="text-[11px] text-muted-foreground line-clamp-1">
-                        {row.original.excerpt}
+                        {row.original.excerpt || "Tidak ada ringkasan."}
                     </span>
                 </div>
             ),
+        },
+
+        /* ================= VIEWS (Fix Crash) ================= */
+        {
+            id: "views",
+            header: "Views",
+            cell: ({ row }) => {
+                const views = row.original.views ?? 0; // Mengatasi error toLocaleString
+                return (
+                    <Badge variant="secondary">
+                        {views.toLocaleString('id-ID')}
+                    </Badge>
+                );
+            }
         },
 
         /* ================= CATEGORY ================= */
         {
             accessorKey: "category",
             header: "Kategori",
-            cell: ({ row }) => {
-                const category = row.original.category;
-
-                return (
-                    <Badge variant="outline" className="text-xs">
-                        {category}
-                    </Badge>
-                );
-            },
-        },
-
-        /* ================= READING TIME ================= */
-        {
-            accessorKey: "reading_time",
-            header: "Durasi",
             cell: ({ row }) => (
-                <span className="text-xs text-muted-foreground">
-                    {row.original.reading_time} min
-                </span>
-            ),
-        },
-
-        /* ================= VIEWS ================= */
-        {
-            accessorKey: "views",
-            header: "Views",
-            cell: ({ row }) => (
-                <Badge variant="secondary">
-                    {row.original.views}
+                <Badge variant="outline" className="font-normal capitalize whitespace-nowrap">
+                    {row.getValue("category")}
                 </Badge>
             ),
+        },
+
+        /* ================= STATS (Views & Reading Time) ================= */
+        {
+            id: "stats",
+            header: "Statistik",
+            cell: ({ row }) => {
+                // Berikan nilai default 0 jika views undefined/null
+                const views = row.original.views ?? 0;
+                const readingTime = row.original.reading_time ?? 0;
+
+                return (
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Eye className="h-3 w-3" />
+                            <span>{views.toLocaleString('id-ID')} kali</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>{readingTime} mnt</span>
+                        </div>
+                    </div>
+                );
+            },
         },
 
         /* ================= FEATURED ================= */
         {
             accessorKey: "is_featured",
-            header: "Highlight",
-            filterFn: "equals",
+            header: "Status",
             cell: ({ row }) => {
-                const featured = row.original.is_featured;
-
+                const isFeatured = row.original.is_featured;
                 return (
                     <Badge
-                        className={
-                            featured
-                                ? "bg-amber-500 text-white"
-                                : "bg-slate-400 text-white"
-                        }
+                        variant={isFeatured ? "default" : "secondary"}
+                        className={isFeatured ? "bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200" : "opacity-60"}
                     >
-                        {featured ? "Featured" : "Normal"}
+                        {isFeatured ? "Featured" : "Standard"}
                     </Badge>
                 );
             },
         },
 
-        /* ================= LINK ================= */
+        /* ================= DATE ================= */
         {
-            id: "link",
-            header: "Preview",
-            cell: ({ row }) => (
-                <a
-                    href={`/articles/${row.original.slug}`}
-                    target="_blank"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                >
-                    <ExternalLink className="h-3 w-3" />
-                    Lihat
-                </a>
-            ),
+            accessorKey: "created_at",
+            header: "Tanggal Terbit",
+            cell: ({ row }) => {
+                const dateStr = row.original.created_at;
+
+                // Cek apakah tanggal valid
+                if (!dateStr) return <span className="text-xs text-muted-foreground">-</span>;
+
+                const date = new Date(dateStr);
+
+                return (
+                    <div className="text-xs">
+                        <div className="font-medium text-slate-700">
+                            {date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </div>
+                        <div className="text-muted-foreground italic">
+                            {date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                    </div>
+                );
+            },
         },
 
         /* ================= ACTION ================= */
         {
             id: "actions",
-            header: "Aksi",
+            header: () => <div className="text-right px-4">Aksi</div>,
             cell: ({ row }) => {
                 const article = row.original;
 
                 return (
-                    <div className="flex items-center gap-1">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onEdit(article)}
-                        >
-                            <Edit className="h-4 w-4 text-blue-600" />
-                        </Button>
+                    <div className="flex items-center justify-end gap-1 px-2">
+                        <TooltipProvider delayDuration={300}>
+                            {/* Preview Button */}
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" asChild>
+                                        <a href={`/articles/${article.slug}`} target="_blank" rel="noopener noreferrer">
+                                            <ExternalLink className="h-4 w-4" />
+                                        </a>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Lihat Artikel</TooltipContent>
+                            </Tooltip>
 
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(article.id)}
-                        >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                            {/* Edit Button */}
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:bg-slate-100" onClick={() => onEdit(article)}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit</TooltipContent>
+                            </Tooltip>
+
+                            {/* Delete Button */}
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(article.id)}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Hapus</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                 );
             },

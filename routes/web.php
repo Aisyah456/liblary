@@ -1,22 +1,18 @@
 <?php
 
+use App\Http\Controllers\Api\LibraryFeedbackController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\Cms\FeedbackController;
+use App\Http\Controllers\Cms\HeroSectionController;
+use App\Http\Controllers\Cms\MessageController as AdminMessageController;
+use App\Http\Controllers\Cms\NewsController as AdminNewsController;
+use App\Http\Controllers\Home\LandingPageController;
+use App\Http\Controllers\LibraryFreeController;
+use App\Http\Controllers\LibraryProfileController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\TurnitinSubmissionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-// Public Controllers
-use App\Http\Controllers\Home\LandingPageController;
-use App\Http\Controllers\NewsController;
-use App\Http\Controllers\ProfilController;
-use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\LibraryFreeController;
-use App\Http\Controllers\TurnitinSubmissionController;
-
-// Admin/CMS Controllers
-use App\Http\Controllers\Cms\HeroSectionController;
-use App\Http\Controllers\Cms\FeedbackController;
-use App\Http\Controllers\Cms\NewsController as AdminNewsController;
-use App\Http\Controllers\Cms\MessageController as AdminMessageController;
-use App\Http\Controllers\Api\LibraryFeedbackController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +28,7 @@ Route::controller(NewsController::class)->group(function () {
     Route::get('news/{slug}', 'show')->name('news.show')->where('slug', '[a-z0-9\-]+');
 });
 Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
-Route::get('profil', [ProfilController::class, 'index'])->name('profil.index');
+Route::get('profil', [LibraryProfileController::class, 'index'])->name('profil.index');
 
 /*
 | Layanan Routes
@@ -51,7 +47,8 @@ Route::prefix('layanan')->group(function () {
     Route::get('form-cek-turnitin', [TurnitinSubmissionController::class, 'create'])->name('form-cek-turnitin.create');
     Route::post('form-cek-turnitin/store', [TurnitinSubmissionController::class, 'store'])->name('form-cek-turnitin.store');
 
-    Route::get('kontak', [App\Http\Controllers\Api\MessageController::class, 'index'])->name('layanan.kontak');
+
+    Route::get('kontak', [App\Http\Controllers\Api\MessageController::class, 'index'])->name('kontak');
 });
 
 /*
@@ -71,24 +68,27 @@ Route::prefix('api')->name('api.')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Dashboard
-    Route::get('dashboard', fn() => Inertia::render('Dashboard'))->name('Dashboard');
 
     // Admin Resources Group
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\Cms\DashboardController::class, 'index'])->name('dashboard');
         Route::resource('partners', App\Http\Controllers\PartnerController::class);
-        Route::resource('articles', App\Http\Controllers\Api\ArticleController::class);
-        Route::resource('services', App\Http\Controllers\ServiceController::class);
-
-        // News Management with POST override for Update (Multipart/form-data fix)
         Route::post('news/{news}', [AdminNewsController::class, 'update'])->name('news.update.post');
         Route::resource('news', AdminNewsController::class);
 
+        //masih dalam maintenance articel
+        Route::resource('articles', App\Http\Controllers\Api\ArticleController::class);
+        //masih dalam penyesuaian
+        Route::resource('services', App\Http\Controllers\ServiceController::class);
+        //masih perbaikan di profile
+        Route::resource('profile', App\Http\Controllers\ProfilController::class);
+        //masih dalam maintenance 
         Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
 
         // Turnitin Process
         Route::post('turnitin/results', [App\Http\Controllers\TurnitinProcessController::class, 'storeResult'])->name('turnitin.results.store');
         Route::resource('turnitin', App\Http\Controllers\TurnitinProcessController::class);
+        Route::resource('feedback', App\Http\Controllers\Cms\FeedbackController::class);
     });
 
     // CMS Management Group
@@ -105,7 +105,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'shelves'          => App\Http\Controllers\ShelfController::class,
             'borrowings'       => App\Http\Controllers\BorrowingController::class,
             'bebas-pustaka'    => App\Http\Controllers\LibraryFreeController::class,
-            'feedback'         => FeedbackController::class,
         ]);
 
         Route::resource('library-feedback', LibraryFeedbackController::class)->only(['index', 'show', 'destroy']);

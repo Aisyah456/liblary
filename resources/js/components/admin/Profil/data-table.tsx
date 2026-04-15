@@ -33,13 +33,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+
 import { Input } from "@/components/ui/input"
 import {
     Table,
@@ -49,7 +43,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -60,7 +53,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData extends Record<string, any>, TValue>({
     columns,
     data,
-    searchKey = "title",
+    searchKey = "name",
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -86,57 +79,54 @@ export function DataTable<TData extends Record<string, any>, TValue>({
         getSortedRowModel: getSortedRowModel(),
     })
 
+    /* =========================
+        EXPORT EXCEL (IMPROVED)
+    ========================== */
     const exportToExcel = () => {
-        const rows = table.getFilteredRowModel().rows;
-        if (rows.length === 0) return;
+        // Ambil data yang sudah terfilter tapi hapus kolom sensistif/action
+        const exportData = table.getFilteredRowModel().rows.map((row) => {
+            const original = { ...row.original }
+            // Hapus field yang biasanya tidak perlu di Excel
+            delete original.id
+            delete original.actions
+            return original
+        })
 
-        const exportData = rows.map((row) => {
-            const original = { ...row.original };
-            // Bersihkan data internal/sensitif
-            delete original.icon;
-            delete original.id;
-
-            if (original.is_active !== undefined) {
-                original.is_active = original.is_active ? "Aktif" : "Nonaktif";
-            }
-            return original;
-        });
-
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
-        XLSX.writeFile(workbook, `Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const worksheet = XLSX.utils.json_to_sheet(exportData)
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data")
+        XLSX.writeFile(workbook, `Export_${new Date().getTime()}.xlsx`)
     }
 
     return (
         <div className="w-full space-y-4">
-            {/* TOOLBAR */}
+            {/* ========================= HEADER ========================= */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                {/* SEARCH */}
                 <div className="relative flex-1 w-full max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder={`Cari ${searchKey.replace(/_/g, " ")}...`}
+                        placeholder={`Cari berdasarkan ${searchKey.replace("_", " ")}...`}
                         value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
                             table.getColumn(searchKey)?.setFilterValue(event.target.value)
                         }
-                        className="pl-9 pr-9 h-10"
+                        className="pl-8 h-9"
                     />
-
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                     {/* FILTER STATUS */}
                     {table.getColumn("is_active") && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-10 gap-2 border-dashed">
+                                <Button variant="outline" size="sm" className="h-9 gap-2">
                                     <Filter className="h-4 w-4" />
                                     Status
                                     {table.getColumn("is_active")?.getFilterValue() !== undefined && (
-                                        <Badge variant="secondary" className="ml-1 rounded-sm px-1 font-normal lg:hidden">
+                                        <span className="ml-1 px-1.5 py-0.5 bg-primary text-[10px] text-primary-foreground rounded-full">
                                             1
-                                        </Badge>
+                                        </span>
                                     )}
                                 </Button>
                             </DropdownMenuTrigger>
@@ -145,39 +135,59 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                                 <DropdownMenuSeparator />
                                 <DropdownMenuCheckboxItem
                                     checked={table.getColumn("is_active")?.getFilterValue() === true}
-                                    onCheckedChange={(v) => table.getColumn("is_active")?.setFilterValue(v ? true : undefined)}
+                                    onCheckedChange={(value) => 
+                                        table.getColumn("is_active")?.setFilterValue(value ? true : undefined)
+                                    }
                                 >
                                     Aktif
                                 </DropdownMenuCheckboxItem>
                                 <DropdownMenuCheckboxItem
                                     checked={table.getColumn("is_active")?.getFilterValue() === false}
-                                    onCheckedChange={(v) => table.getColumn("is_active")?.setFilterValue(v ? false : undefined)}
+                                    onCheckedChange={(value) => 
+                                        table.getColumn("is_active")?.setFilterValue(value ? false : undefined)
+                                    }
                                 >
                                     Nonaktif
                                 </DropdownMenuCheckboxItem>
+                                {table.getColumn("is_active")?.getFilterValue() !== undefined && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full justify-start text-xs text-destructive hover:text-destructive"
+                                            onClick={() => table.getColumn("is_active")?.setFilterValue(undefined)}
+                                        >
+                                            <X className="mr-2 h-3 w-3" />
+                                            Reset Filter
+                                        </Button>
+                                    </>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     )}
 
+                    {/* EXPORT */}
                     <Button
                         variant="outline"
                         size="sm"
-                        className="h-10 gap-2 border-emerald-600/20 text-emerald-600 hover:bg-emerald-50"
+                        className="h-9 gap-2 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
                         onClick={exportToExcel}
                     >
                         <Download className="h-4 w-4" />
-                        <span className="hidden sm:inline">Excel</span>
+                        Export
                     </Button>
 
+                    {/* TOGGLE COLUMN */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-10 gap-2">
+                            <Button variant="outline" size="sm" className="h-9 gap-2">
                                 <Settings2 className="h-4 w-4" />
-                                <span className="hidden sm:inline">Tampilan</span>
+                                Kolom
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuLabel>Konfigurasi Kolom</DropdownMenuLabel>
+                            <DropdownMenuLabel>Tampilkan Kolom</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             {table
                                 .getAllColumns()
@@ -189,7 +199,7 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                                         checked={column.getIsVisible()}
                                         onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                     >
-                                        {column.id.replace(/_/g, " ")}
+                                        {column.id.replace("_", " ")}
                                     </DropdownMenuCheckboxItem>
                                 ))}
                         </DropdownMenuContent>
@@ -197,34 +207,50 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                 </div>
             </div>
 
-            {/* TABLE */}
-            <div className="rounded-md border bg-white shadow-sm overflow-hidden">
+            {/* ========================= TABLE ========================= */}
+            <div className="rounded-md border bg-card shadow-sm overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-slate-50/50">
+                    <TableHeader className="bg-muted/50">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="font-semibold text-slate-900">
-                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                    <TableHead key={header.id} className="font-semibold">
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
                                     </TableHead>
                                 ))}
                             </TableRow>
                         ))}
                     </TableHeader>
+
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} className="hover:bg-slate-50/50">
+                                <TableRow
+                                    key={row.id}
+                                    data-state={row.getIsSelected() && "selected"}
+                                    className="hover:bg-muted/30 transition-colors"
+                                >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext()
+                                            )}
                                         </TableCell>
                                     ))}
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
+                                <TableCell
+                                    colSpan={table.getAllColumns().length}
+                                    className="h-32 text-center text-muted-foreground"
+                                >
                                     Data tidak ditemukan.
                                 </TableCell>
                             </TableRow>
@@ -233,32 +259,19 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                 </Table>
             </div>
 
-            {/* PAGINATION */}
+            {/* ========================= PAGINATION ========================= */}
             <div className="flex items-center justify-between px-2">
                 <div className="flex-1 text-sm text-muted-foreground">
-                    Menampilkan {table.getRowModel().rows.length} dari {table.getFilteredRowModel().rows.length} baris.
+                    Menampilkan {table.getPaginationRowModel().rows.length} dari{" "}
+                    {table.getFilteredRowModel().rows.length} baris
                 </div>
-                <div className="flex items-center space-x-6 lg:space-x-8">
-                    <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium">Baris</p>
-                        <Select
-                            value={`${table.getState().pagination.pageSize}`}
-                            onValueChange={(v) => table.setPageSize(Number(v))}
-                        >
-                            <SelectTrigger className="h-8 w-[70px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent side="top">
-                                {[10, 20, 30, 40, 50].map((size) => (
-                                    <SelectItem key={size} value={`${size}`}>{size}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                        Hal {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
-                    </div>
-                    <div className="flex items-center space-x-2">
+
+                <div className="flex items-center space-x-2">
+                    <p className="text-sm font-medium">
+                        Halaman {table.getState().pagination.pageIndex + 1} dari{" "}
+                        {table.getPageCount()}
+                    </p>
+                    <div className="flex items-center space-x-1">
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"

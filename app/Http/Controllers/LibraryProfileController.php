@@ -6,12 +6,12 @@ use App\Models\LibraryProfile;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class ProfilController extends Controller
+class LibraryProfileController extends Controller
 {
     public function index(Request $request)
     {
         // Mengambil data pertama dari tabel library_profiles
-        // Jika data tidak ada (belum di-seed), akan memunculkan error 404
+        // Jika data tidak ada (belum di-seed), akan memunculkan error 404ca
         $profile = LibraryProfile::firstOrFail();
 
         return Inertia::render('profil/Index', [

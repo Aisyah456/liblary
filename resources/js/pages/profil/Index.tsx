@@ -1,5 +1,6 @@
 import Footer from '@/components/home/Footer';
-import Navbar from '@/Components/home/Navbar';
+import Navbar from '@/components/home/Navbar';
+
 import { Head } from '@inertiajs/react';
 
 import { BookOpen, Users, Target, ShieldCheck, Mail, Briefcase } from 'lucide-react';

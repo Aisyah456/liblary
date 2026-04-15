@@ -6,25 +6,45 @@ import axios from 'axios';
 import ClientSlider from './parts/ClientSlider';
 import ServiceBox from './elements/ServiceBox';
 
-export default function Services() {
-    const [services, setServices] = useState([]);
+// 1. Definisi Interface yang lebih jelas
+interface ServiceItem {
+    id: number | string;
+    is_active: boolean;
+    order: number;
+    icon: string;
+    title: string;
+    subtitle: string;
+    features: string | string[];
+    link?: string;
+}
+
+interface ServicesProps {
+    initialData?: ServiceItem[]; // Opsional jika ingin data awal dari props
+}
+
+export default function Services({ initialData }: ServicesProps) {
+    // 2. Ubah nama state agar tidak bentrok dengan props
+    const [serviceList, setServiceList] = useState<ServiceItem[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchServices = async () => {
             try {
                 const response = await axios.get('/api/services');
+                let data: ServiceItem[] = response.data;
 
-                let data = response.data;
+                // 3. Filter, Sort, dan Parse sekaligus saat fetch
+                const processedData = data
+                    .filter(service => service.is_active)
+                    .sort((a, b) => a.order - b.order)
+                    .map(service => ({
+                        ...service,
+                        features: typeof service.features === 'string'
+                            ? JSON.parse(service.features)
+                            : service.features
+                    }));
 
-                // Filter hanya service aktif
-                data = data.filter(service => service.is_active);
-
-                // Sorting berdasarkan order
-                data = data.sort((a, b) => a.order - b.order);
-
-                setServices(data);
-
+                setServiceList(processedData);
             } catch (error) {
                 console.error('Error fetching services:', error);
             } finally {
@@ -37,18 +57,15 @@ export default function Services() {
 
     return (
         <Wrapper id="services">
-
-            {/* Client Logo Slider */}
-            <div className="lightBg sliderSection">
+            {/* 4. Gunakan Styled Components yang sudah dibuat */}
+            <SliderSection className="lightBg">
                 <div className="container">
-                    <ClientSlider />
+                    <ClientSlider partners={undefined} />
                 </div>
-            </div>
+            </SliderSection>
 
-            {/* Service Section */}
-            <div className="whiteBg serviceSection">
+            <ServiceSection className="whiteBg">
                 <div className="container">
-
                     <HeaderInfo>
                         <h1>Layanan Unggulan Kami</h1>
                         <p>
@@ -62,26 +79,17 @@ export default function Services() {
                         <Loading>Memuat layanan...</Loading>
                     ) : (
                         <ServiceGrid>
-
-                            {services.map((service) => {
-
-                                const features =
-                                    typeof service.features === 'string'
-                                        ? JSON.parse(service.features)
-                                        : service.features;
-
-                                return (
+                                {serviceList.map((service) => (
                                     <ServiceCard key={service.id}>
-
                                         <ServiceBox
                                             icon={service.icon}
                                             title={service.title}
                                             subtitle={service.subtitle}
                                         />
 
-                                        {features && (
+                                        {Array.isArray(service.features) && (
                                             <FeatureList>
-                                                {features.map((feature, index) => (
+                                                {service.features.map((feature, index) => (
                                                     <li key={index}>{feature}</li>
                                                 ))}
                                             </FeatureList>
@@ -89,28 +97,22 @@ export default function Services() {
 
                                         <ButtonWrapper>
                                             <ReadMoreButton
-                                                onClick={() =>
-                                                    (window.location.href =
-                                                        service.link || '#')
-                                                }
+                                                onClick={() => (window.location.href = service.link || '#')}
                                             >
                                                 Read More →
                                             </ReadMoreButton>
                                         </ButtonWrapper>
-
                                     </ServiceCard>
-                                );
-                            })}
-
+                                ))}
                         </ServiceGrid>
                     )}
                 </div>
-            </div>
+            </ServiceSection>
         </Wrapper>
     );
 }
 
-/* ================= STYLES ================= */
+/* ================= STYLES (Fixed Naming) ================= */
 
 const Wrapper = styled.section`
     width: 100%;
@@ -119,13 +121,11 @@ const Wrapper = styled.section`
 const HeaderInfo = styled.div`
     text-align: center;
     margin-bottom: 60px;
-
     h1 {
         font-size: 40px;
         font-weight: 800;
         margin-bottom: 10px;
     }
-
     p {
         color: #666;
         max-width: 600px;
@@ -134,11 +134,12 @@ const HeaderInfo = styled.div`
     }
 `;
 
-const sliderSection = styled.div`
+// Perbaikan: Awali dengan huruf kapital agar bisa digunakan sebagai Komponen
+const SliderSection = styled.div`
     padding: 50px 0;
 `;
 
-const serviceSection = styled.div`
+const ServiceSection = styled.div`
     padding: 70px 0;
 `;
 
@@ -153,6 +154,9 @@ const ServiceCard = styled.div`
     border-radius: 12px;
     padding: 25px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     transition: all 0.3s;
 
     &:hover {
@@ -165,15 +169,18 @@ const FeatureList = styled.ul`
     margin-top: 20px;
     padding: 0;
     list-style: none;
+    flex-grow: 1;
 
     li {
         font-size: 13px;
         color: #666;
         margin-bottom: 10px;
+        display: flex;
+        align-items: flex-start;
 
         &:before {
             content: "✓";
-            color: #0b1b35;
+            color: #2563eb;
             font-weight: bold;
             margin-right: 10px;
         }
