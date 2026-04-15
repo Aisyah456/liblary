@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import axios from 'axios';
 
 // Components
-import ClientSlider from '../home/parts/ClientSlider';
-import ServiceBox from '../home/elements/ServiceBox';
+import ClientSlider from './parts/ClientSlider';
+import ServiceBox from './elements/ServiceBox';
 
 export default function Services() {
     const [services, setServices] = useState([]);

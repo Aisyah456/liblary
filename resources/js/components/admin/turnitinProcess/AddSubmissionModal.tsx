@@ -1,43 +1,71 @@
+import React from "react";
 import { useForm } from "@inertiajs/react";
-import { FileUp, UserCircle, BookOpen } from "lucide-react";
+import {
+    FileUp,
+    User,
+    Hash,
+    Mail,
+    BookText,
+    X
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter,
     DialogDescription
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from "@/components/ui/select";
+
+interface Faculty {
+    id: string | number;
+    name: string;
+}
+
+interface Major {
+    id: string | number;
+    faculty_id: string | number;
+    name: string;
+}
 
 interface AddSubmissionModalProps {
     isOpen: boolean;
     onClose: () => void;
+    faculties?: Faculty[];
+    majors?: Major[];
 }
 
-export default function AddSubmissionModal({ isOpen, onClose }: AddSubmissionModalProps) {
-    // Menggunakan Inertia useForm untuk handle file upload dan validasi
+export default function AddSubmissionModal({
+    isOpen,
+    onClose,
+    faculties = [],
+    majors = []
+}: AddSubmissionModalProps) {
+
     const { data, setData, post, processing, reset, errors } = useForm({
         full_name: "",
-        identifier_id: "", // NIM / NIDN
+        identifier_id: "",
+        email: "",
+        faculty_id: "",
+        major_id: "",
         title: "",
         document_type: "",
-        file: null as File | null,
+        academic_year: new Date().getFullYear().toString(),
+        file_path: null as File | null,
     });
+
+    const filteredMajors = majors.filter(
+        (m) => String(m.faculty_id) === String(data.faculty_id)
+    );
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setData("file_path", e.target.files[0]);
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Mengarah ke store method pada SubmissionController via Route Resource
         post(route('submissions.store'), {
             onSuccess: () => {
                 onClose();
@@ -49,127 +77,235 @@ export default function AddSubmissionModal({ isOpen, onClose }: AddSubmissionMod
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[450px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <FileUp className="h-5 w-5 text-indigo-600" />
-                        Tambah Pengajuan Turnitin
-                    </DialogTitle>
-                    <DialogDescription>
-                        Lengkapi formulir di bawah untuk mendaftarkan karya ilmiah ke antrean pengecekan.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleSubmit} className="space-y-4 py-2">
-                    {/* Nama & ID Section */}
-                    <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-1">
-                            <Label htmlFor="full_name" className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                Nama Lengkap
-                            </Label>
-                            <Input
-                                id="full_name"
-                                placeholder="Nama Mahasiswa/Dosen"
-                                value={data.full_name}
-                                onChange={(e) => setData("full_name", e.target.value)}
-                                className={errors.full_name ? "border-red-500" : ""}
-                                required
-                            />
-                            {errors.full_name && <p className="text-[11px] font-medium text-red-500">{errors.full_name}</p>}
+            <DialogContent className="max-w-4xl p-0 overflow-hidden border-none bg-slate-50/50 max-h-[90vh] overflow-y-auto">
+                <form onSubmit={handleSubmit}>
+                    {/* Header Custom */}
+                    <div className="bg-white p-6 border-b border-slate-100 sticky top-0 z-10 flex justify-between items-center">
+                        <div>
+                            <DialogTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <FileUp className="text-teal-600" />
+                                Pengajuan Turnitin Baru
+                            </DialogTitle>
+                            <DialogDescription className="text-slate-500 mt-1">
+                                Pastikan data identitas dan dokumen sudah sesuai.
+                            </DialogDescription>
                         </div>
-
-                        <div className="space-y-1">
-                            <Label htmlFor="identifier_id" className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                NIM / NIDN
-                            </Label>
-                            <Input
-                                id="identifier_id"
-                                placeholder="Contoh: 201011400..."
-                                value={data.identifier_id}
-                                onChange={(e) => setData("identifier_id", e.target.value)}
-                                className={errors.identifier_id ? "border-red-500" : ""}
-                                required
-                            />
-                            {errors.identifier_id && <p className="text-[11px] font-medium text-red-500">{errors.identifier_id}</p>}
-                        </div>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={onClose}
+                            className="rounded-full hover:bg-slate-100"
+                        >
+                            <X size={20} />
+                        </Button>
                     </div>
 
-                    {/* Judul Karya */}
-                    <div className="space-y-1">
-                        <Label htmlFor="title" className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                            Judul Karya Ilmiah
-                        </Label>
-                        <Input
-                            id="title"
-                            placeholder="Masukkan judul lengkap sesuai dokumen"
-                            value={data.title}
-                            onChange={(e) => setData("title", e.target.value)}
-                            className={errors.title ? "border-red-500" : ""}
-                            required
-                        />
-                        {errors.title && <p className="text-[11px] font-medium text-red-500">{errors.title}</p>}
-                    </div>
-
-                    {/* Jenis & File Section */}
-                    <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-1">
-                            <Label htmlFor="document_type" className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                Jenis Dokumen
-                            </Label>
-                            <Select
-                                onValueChange={(value) => setData("document_type", value)}
-                                defaultValue={data.document_type}
-                                required
-                            >
-                                <SelectTrigger className={errors.document_type ? "border-red-500" : ""}>
-                                    <SelectValue placeholder="Pilih kategori" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Skripsi">Skripsi</SelectItem>
-                                    <SelectItem value="Tesis">Tesis</SelectItem>
-                                    <SelectItem value="Artikel">Artikel Jurnal</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.document_type && <p className="text-[11px] font-medium text-red-500">{errors.document_type}</p>}
-                        </div>
-
-                        <div className="space-y-1">
-                            <Label htmlFor="file" className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                File Dokumen
-                            </Label>
-                            <div className="relative">
-                                <Input
-                                    id="file"
-                                    type="file"
-                                    accept=".pdf,.doc,.docx"
-                                    onChange={(e) => setData("file", e.target.files ? e.target.files[0] : null)}
-                                    required
-                                    className={`cursor-pointer pb-2 pt-1.5 ${errors.file ? "border-red-500" : ""}`}
-                                />
+                    <div className="p-6 space-y-6">
+                        {/* KARTU 1: IDENTITAS */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                            <div className="flex items-center gap-3 mb-8 border-b border-slate-50 pb-4">
+                                <div className="p-2 bg-teal-50 rounded-lg text-teal-600">
+                                    <User size={20} />
+                                </div>
+                                <h2 className="font-bold text-slate-800 tracking-wide uppercase text-sm">Informasi Personal</h2>
                             </div>
-                            <p className="text-[10px] text-slate-400 italic">Maksimal ukuran file: 10MB (PDF, DOC, DOCX)</p>
-                            {errors.file && <p className="text-[11px] font-medium text-red-500">{errors.file}</p>}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nama Lengkap</label>
+                                    <input
+                                        type="text"
+                                        disabled={processing}
+                                        className={`w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 transition-all ${errors.full_name ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
+                                        placeholder="Contoh: Ahmad Subardjo, S.Kom"
+                                        value={data.full_name}
+                                        onChange={e => setData('full_name', e.target.value)}
+                                        required
+                                    />
+                                    {errors.full_name && <p className="text-xs text-rose-500 mt-1">{errors.full_name}</p>}
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">NIM / NIDN</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <Hash size={16} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            disabled={processing}
+                                            className={`w-full pl-10 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.identifier_id ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
+                                            placeholder="202101001"
+                                            value={data.identifier_id}
+                                            onChange={e => setData('identifier_id', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    {errors.identifier_id && <p className="text-xs text-rose-500 mt-1">{errors.identifier_id}</p>}
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Email Aktif</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <Mail size={16} />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            disabled={processing}
+                                            className={`w-full pl-10 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.email ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
+                                            placeholder="ahmad@gmail.com"
+                                            value={data.email}
+                                            onChange={e => setData('email', e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    {errors.email && <p className="text-xs text-rose-500 mt-1">{errors.email}</p>}
+                                </div>
+
+                                <div className="space-y-1.5 md:col-span-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Fakultas</label>
+                                    <select
+                                        disabled={processing}
+                                        className={`w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.faculty_id ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
+                                        value={data.faculty_id}
+                                        onChange={e => setData(prev => ({ ...prev, faculty_id: e.target.value, major_id: '' }))}
+                                        required
+                                    >
+                                        <option value="">Pilih Fakultas</option>
+                                        {faculties?.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5 md:col-span-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Program Studi</label>
+                                    <select
+                                        disabled={!data.faculty_id || processing}
+                                        className={`w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.major_id ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
+                                        value={data.major_id}
+                                        onChange={e => setData('major_id', e.target.value)}
+                                        required
+                                    >
+                                        <option value="">{!data.faculty_id ? 'Pilih Fakultas Dahulu' : 'Pilih Program Studi'}</option>
+                                        {filteredMajors.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* KARTU 2: DETAIL DOKUMEN */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                            <div className="flex items-center gap-3 mb-8 border-b border-slate-50 pb-4">
+                                <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
+                                    <BookText size={20} />
+                                </div>
+                                <h2 className="font-bold text-slate-800 tracking-wide uppercase text-sm">Detail Dokumen</h2>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Judul Karya Ilmiah</label>
+                                    <textarea
+                                        disabled={processing}
+                                        rows={3}
+                                        className={`w-full rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 p-4 transition-all ${errors.title ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
+                                        placeholder="Contoh: Analisis Keamanan Jaringan Menggunakan Metode..."
+                                        value={data.title}
+                                        onChange={e => setData('title', e.target.value)}
+                                        required
+                                    />
+                                    {errors.title && <p className="text-xs text-rose-500 mt-1">{errors.title}</p>}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-bold text-slate-500 uppercase ml-1">Jenis Dokumen</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['Skripsi', 'Tesis', 'Disertasi', 'Artikel'].map((type) => (
+                                                <button
+                                                    key={type}
+                                                    type="button"
+                                                    disabled={processing}
+                                                    onClick={() => setData('document_type', type)}
+                                                    className={`px-4 py-2 rounded-full text-xs font-semibold transition-all border ${data.document_type === type
+                                                        ? 'bg-teal-600 border-teal-600 text-white shadow-md'
+                                                        : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300'
+                                                        } disabled:opacity-50`}
+                                                >
+                                                    {type}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 uppercase ml-1">Tahun Akademik</label>
+                                        <input
+                                            type="text"
+                                            disabled={processing}
+                                            className="w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30"
+                                            value={data.academic_year}
+                                            onChange={e => setData('academic_year', e.target.value)}
+                                            placeholder="2023/2024"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-4">
+                                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">File Dokumen</label>
+                                    <div className="mt-2 group relative">
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            id="file_path_modal"
+                                            disabled={processing}
+                                            accept=".pdf,.doc,.docx"
+                                            onChange={handleFileChange}
+                                        />
+                                        <label
+                                            htmlFor="file_path_modal"
+                                            className={`flex flex-col items-center justify-center w-full min-h-[160px] border-2 border-dashed rounded-[2rem] cursor-pointer transition-all ${data.file_path
+                                                ? 'border-teal-500 bg-teal-50/30'
+                                                : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-teal-400'
+                                                } ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className="flex flex-col items-center text-center p-6">
+                                                <div className={`p-3 rounded-full mb-3 ${data.file_path ? 'bg-teal-100 text-teal-600' : 'bg-white text-slate-400 shadow-sm'}`}>
+                                                    <FileUp size={24} />
+                                                </div>
+                                                <p className="text-sm font-bold text-slate-700">
+                                                    {data.file_path ? data.file_path.name : 'Klik untuk pilih file'}
+                                                </p>
+                                                <p className="text-xs text-slate-400 mt-1">PDF, DOC, atau DOCX (Max. 10MB)</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    {errors.file_path && <p className="text-xs text-rose-500 mt-2">{errors.file_path}</p>}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <DialogFooter className="mt-6 flex flex-col-reverse gap-2 sm:flex-row">
+                    {/* Footer / Actions */}
+                    <div className="p-6 bg-white border-t border-slate-100 flex flex-col-reverse sm:flex-row justify-end gap-3 sticky bottom-0">
                         <Button
                             type="button"
                             variant="ghost"
                             onClick={onClose}
                             disabled={processing}
-                            className="w-full sm:w-auto"
+                            className="rounded-xl px-6"
                         >
                             Batal
                         </Button>
                         <Button
                             type="submit"
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 sm:w-auto"
                             disabled={processing}
+                            className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-8 font-bold shadow-lg shadow-teal-100 transition-all active:scale-95"
                         >
-                            {processing ? "Memproses..." : "Simpan Pengajuan"}
+                            {processing ? "Memproses..." : "Kirim Pengajuan"}
                         </Button>
-                    </DialogFooter>
+                    </div>
                 </form>
             </DialogContent>
         </Dialog>

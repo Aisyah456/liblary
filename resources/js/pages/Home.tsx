@@ -1,12 +1,14 @@
 import { Head } from '@inertiajs/react';
-import Footer from '@/Components/home/Footer';
-import Hero from '@/Components/home/Hero';
-import Services from '@/Components/home/Menu';
-import Navbar from '@/Components/home/Navbar';
-import Article from '@/Components/home/Article'; // Perbaikan typo 'Articel' -> 'Article'
-import Client from '@/Components/home/parts/ClientSlider';
-import Panduan from '@/Components/home/Panduan';
-import Lite from '@/Components/home/Lite';
+import Footer from '@/components/home/Footer';
+
+import Article from '@/components/home/Article'; // Perbaikan typo 'Articel' -> 'Article'
+
+import Hero from '@/components/home/Hero';
+import Navbar from '@/components/home/Navbar';
+import Lite from '@/components/home/Lite';
+import Services from './admin/cms/Services';
+import Panduan from '@/components/home/Panduan';
+import Client from './admin/cms/Client';
 
 // Definisi Interface agar lebih aman (TypeScript)
 interface WelcomeProps {

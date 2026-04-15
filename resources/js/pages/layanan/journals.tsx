@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
-import Footer from '@/Components/home/Footer';
-import Navbar from '@/Components/home/Navbar';
+import Footer from '@/components/home/Footer';
+import Navbar from '@/components/home/Navbar';
 import {
     Info,
     ExternalLink,

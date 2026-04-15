@@ -3,34 +3,50 @@ import styled from 'styled-components';
 import { Calendar, ArrowRight, Newspaper, Clock } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
-export default function Articel({ articles }) {
-    // 1. Penanganan Data yang lebih kuat
-    // Jika articles adalah object hasil pagination, ambil .data. Jika null, jadi array kosong.
-    const rawData = articles?.data || (Array.isArray(articles) ? articles : []);
+// 1. Definisi Interface untuk Data Berita
+interface Article {
+    id: number;
+    title: string;
+    slug: string;
+    thumbnail: string;
+    category: string;
+    excerpt: string;
+    reading_time: number | string;
+    is_featured: boolean;
+    created_at: string;
+}
 
-    // 2. Logika Featured & Side News
+interface ArticleProps {
+    articles: {
+        data?: Article[]; // Jika dari pagination Laravel
+    } | Article[]; // Jika array biasa
+}
+
+// 2. Helper Functions (Ditaruh luar agar lebih bersih)
+const getThumb = (path: string | null) => {
+    if (!path) return '/images/placeholder.jpg';
+    if (path.startsWith('http')) return path;
+    return `/storage/${path}`;
+};
+
+const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric'
+    });
+};
+
+export default function Articel({ articles }: ArticleProps) {
+    // Penanganan data yang lebih robust
+    const rawData: Article[] = Array.isArray(articles)
+        ? articles
+        : articles?.data || [];
+
     const featured = rawData.find(a => a.is_featured) || rawData[0];
     const sideNews = rawData
         .filter(a => a.id !== featured?.id)
         .slice(0, 4);
 
-    // 3. Helper URL Gambar (PENTING)
-    // Karena di seeder kita pakai URL online (https://...), 
-    // kita harus cek apakah thumbnail itu URL atau file lokal.
-    const getThumb = (path) => {
-        if (!path) return '/images/placeholder.jpg';
-        if (path.startsWith('http')) return path; // Jika dari Unsplash/Picsum
-        return `/storage/${path}`; // Jika upload manual
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return "";
-        return new Date(dateString).toLocaleDateString('id-ID', {
-            day: 'numeric', month: 'long', year: 'numeric'
-        });
-    };
-
-    // 4. Render Empty State jika benar-benar kosong
     if (rawData.length === 0) {
         return (
             <Wrapper>
@@ -61,9 +77,9 @@ export default function Articel({ articles }) {
                         <FeaturedCard>
                             <Link href={`/news/${featured.slug}`}>
                                 <div className="img-wrapper">
-                                    <img 
-                                        src={getThumb(featured.thumbnail)} 
-                                        alt={featured.title} 
+                                    <img
+                                        src={getThumb(featured.thumbnail)}
+                                        alt={featured.title}
                                     />
                                     <span className="cat-tag">{featured.category}</span>
                                 </div>
@@ -88,9 +104,9 @@ export default function Articel({ articles }) {
                         {sideNews.map((item) => (
                             <SideCard key={item.id}>
                                 <Link href={`/news/${item.slug}`} className="side-link">
-                                    <img 
-                                        src={getThumb(item.thumbnail)} 
-                                        alt={item.title} 
+                                    <img
+                                        src={getThumb(item.thumbnail)}
+                                        alt={item.title}
                                     />
                                     <div className="side-info">
                                         <span className="side-cat">{item.category}</span>
@@ -100,7 +116,7 @@ export default function Articel({ articles }) {
                                 </Link>
                             </SideCard>
                         ))}
-                        
+
                         <Link href="/news" style={{ textDecoration: 'none' }}>
                             <ViewAllBtn $active={true}>
                                 Lihat Semua Arsip Berita
@@ -113,10 +129,9 @@ export default function Articel({ articles }) {
     );
 }
 
-// --- Styled Components ---
-
+// --- Styled Components Tetap Sama (Sangat Bagus) ---
 const Wrapper = styled.section`
-    padding: 60px 0;
+    padding: 80px 0; /* Tambah sedikit padding */
     background: #f8fafc;
     min-height: 100vh;
     font-family: 'Inter', sans-serif;
@@ -126,6 +141,8 @@ const Wrapper = styled.section`
         padding: 0 20px;
     }
 `;
+
+// ... sisipkan Styled Components lainnya dari kode kamu ...
 
 const TopHeader = styled.div`
     display: flex;

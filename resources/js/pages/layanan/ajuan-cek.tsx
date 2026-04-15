@@ -1,14 +1,16 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
-import Footer from '@/Components/home/Footer';
-import Navbar from '@/Components/home/Navbar';
+import Footer from '@/components/home/Footer';
+import Navbar from '@/components/home/Navbar';
 import {
     FileUp, Send, User, BookText, AlertCircle,
     Mail, Hash, GraduationCap, Info
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useEffect, useMemo, ChangeEvent, FormEvent } from 'react';
+import { route as ziggyRoute } from 'ziggy-js';
 
 
+declare var route: any;
 
 // --- Interfaces ---
 interface Major {
@@ -22,8 +24,20 @@ interface Faculty {
     majors: Major[];
 }
 
-export default function TurnitinSubmission({ auth, faculties }: { auth: any; faculties: Faculty[] }) {
-    const { flash }: any = usePage().props;
+interface PageProps {
+    auth: { user: any };
+    faculties: Faculty[];
+    flash: {
+        message?: {
+            type: 'success' | 'error' | 'warning';
+            text: string;
+        };
+    };
+}
+
+export default function TurnitinSubmission() {
+
+    const { auth, faculties, flash } = usePage<PageProps>().props;
 
     const { data, setData, post, processing, errors, reset } = useForm({
         identifier_id: '',
@@ -37,12 +51,14 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
         academic_year: '2025/2026',
     });
 
+    // Filter program studi berdasarkan fakultas yang dipilih
     const filteredMajors = useMemo(() => {
         if (!data.faculty_id) return [];
         const faculty = faculties.find(f => f.id.toString() === data.faculty_id.toString());
         return faculty ? faculty.majors : [];
     }, [data.faculty_id, faculties]);
 
+    // Handle notifikasi flash dari session Laravel
     useEffect(() => {
         if (flash?.message) {
             Swal.fire({
@@ -57,6 +73,7 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
         if (file) {
+            // Validasi client-side: 10MB
             if (file.size > 10 * 1024 * 1024) {
                 Swal.fire('File Terlalu Besar', 'Maksimal ukuran file adalah 10MB', 'error');
                 e.target.value = '';
@@ -69,12 +86,11 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
-        // Pastikan memanggil route() tanpa import manual
-        // @ts-ignore
+        // Menggunakan helper route() global
         post(route('form-cek-turnitin.store'), {
-            forceFormData: true,
+            forceFormData: true, // Wajib untuk upload file di Laravel/Inertia
             onSuccess: () => {
-                reset('file_path', 'title', 'document_type'); // Reset field tertentu saja
+                reset('file_path', 'title', 'document_type');
                 Swal.fire({
                     title: 'Berhasil Terkirim!',
                     text: 'Dokumen Anda sedang dalam antrean verifikasi admin.',
@@ -83,11 +99,11 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
                 });
             },
             onError: (err) => {
-                console.error(err);
+                console.error("Submission Error:", err);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 Swal.fire({
                     title: 'Gagal!',
-                    text: 'Silakan periksa kembali formulir Anda.',
+                    text: 'Silakan periksa kembali formulir Anda atau pastikan format file benar.',
                     icon: 'error',
                     confirmButtonColor: '#e11d48',
                 });
@@ -114,7 +130,7 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
                             </p>
                         </div>
 
-                        <form onSubmit={handleSubmit} encType="multipart/form-data" className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                             {/* KOLOM KIRI: INPUT DATA */}
                             <div className="lg:col-span-8 space-y-6">
@@ -151,7 +167,7 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
                                                 <input
                                                     type="text"
                                                     disabled={processing}
-                                                    className={`w-full pl-10 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.identifier_id ? 'border-rose-500' : ''}`}
+                                                    className={`w-full pl-10 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.identifier_id ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
                                                     placeholder="202101001"
                                                     value={data.identifier_id}
                                                     onChange={e => setData('identifier_id', e.target.value)}
@@ -169,7 +185,7 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
                                                 <input
                                                     type="email"
                                                     disabled={processing}
-                                                    className={`w-full pl-10 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.email ? 'border-rose-500' : ''}`}
+                                                    className={`w-full pl-10 py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.email ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
                                                     placeholder="ahmad@gmail.com"
                                                     value={data.email}
                                                     onChange={e => setData('email', e.target.value)}
@@ -182,7 +198,7 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
                                             <label className="text-xs font-bold text-slate-500 uppercase ml-1">Fakultas</label>
                                             <select
                                                 disabled={processing}
-                                                className={`w-full py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.faculty_id ? 'border-rose-500' : ''}`}
+                                                className={`w-full py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.faculty_id ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
                                                 value={data.faculty_id}
                                                 onChange={e => {
                                                     setData(prev => ({ ...prev, faculty_id: e.target.value, major_id: '' }));
@@ -198,7 +214,7 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
                                             <label className="text-xs font-bold text-slate-500 uppercase ml-1">Program Studi</label>
                                             <select
                                                 disabled={!data.faculty_id || processing}
-                                                className={`w-full py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.major_id ? 'border-rose-500' : ''}`}
+                                                className={`w-full py-3 rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 ${errors.major_id ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
                                                 value={data.major_id}
                                                 onChange={e => setData('major_id', e.target.value)}
                                             >
@@ -225,7 +241,7 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
                                             <textarea
                                                 disabled={processing}
                                                 rows={3}
-                                                className={`w-full rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 p-4 ${errors.title ? 'border-rose-500' : ''}`}
+                                                className={`w-full rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500 bg-slate-50/30 p-4 ${errors.title ? 'border-rose-500 ring-1 ring-rose-500' : ''}`}
                                                 placeholder="Contoh: Analisis Keamanan Jaringan..."
                                                 value={data.title}
                                                 onChange={e => setData('title', e.target.value)}
@@ -267,7 +283,6 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
                                             </div>
                                         </div>
 
-                                        {/* UPLOAD BOX */}
                                         <div className="pt-4">
                                             <label className="text-xs font-bold text-slate-500 uppercase ml-1">File Dokumen</label>
                                             <div className="mt-2 group relative">
@@ -364,4 +379,3 @@ export default function TurnitinSubmission({ auth, faculties }: { auth: any; fac
         </>
     );
 }
-

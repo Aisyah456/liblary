@@ -1,6 +1,7 @@
-import Footer from '@/Components/home/Footer';
-import Navbar from '@/Components/home/Navbar';
-import { Head } from '@inertiajs/react';
+import Footer from '@/components/home/Footer';
+import Navbar from '@/components/home/Navbar';
+
+import { Head, Link } from '@inertiajs/react'; 
 
 import {
     Coffee,
@@ -121,6 +122,7 @@ export default function ReadingRoom() {
                             </div>
 
                             {/* RESERVASI RUANGAN (Kanan) */}
+                            {/* RESERVASI RUANGAN (Kanan) */}
                             <div className="lg:col-span-1">
                                 <div className="rounded-[2rem] bg-slate-900 p-8 text-white shadow-lg h-full flex flex-col">
                                     <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
@@ -131,9 +133,14 @@ export default function ReadingRoom() {
                                         Ingin menggunakan ruang diskusi untuk kelompok? Lakukan reservasi jadwal minimal 1 hari sebelumnya.
                                     </p>
                                     <div className="mt-auto space-y-3">
-                                        <button className="w-full py-4 px-4 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-500 transition-all">
+                                        {/* PERUBAHAN DI SINI: Menggunakan Link sebagai pengganti button */}
+                                        <Link
+                                            href="https://pustaka.thamrin.ac.id/index.php?p=visitor"
+                                            className="inline-block w-full text-center py-4 px-4 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-500 transition-all"
+                                        >
                                             Cek Ketersediaan Ruang
-                                        </button>
+                                        </Link>
+
                                         <p className="text-[10px] text-center text-slate-500 uppercase tracking-widest font-bold">
                                             Tersedia untuk Mahasiswa & Dosen
                                         </p>

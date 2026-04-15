@@ -71,13 +71,10 @@ export function DataTable<TData, TValue>({
             <div className="flex items-center py-4 gap-2">
                 {/* Search Filter berdasarkan Nama Pengguna */}
                 <Input
-                    placeholder="Cari nama pengguna..."
-                    /* Catatan: ID kolom 'user_name' merujuk pada accessorKey 'user.name' 
-                       yang biasanya di-flatten oleh TanStack Table menjadi 'user_name' 
-                    */
-                    value={(table.getColumn("user_name")?.getFilterValue() as string) ?? ""}
+                    placeholder="Cari nama pengaju..."
+                    value={(table.getColumn("full_name")?.getFilterValue() as string) ?? ""}
                     onChange={(event) =>
-                        table.getColumn("user_name")?.setFilterValue(event.target.value)
+                        table.getColumn("full_name")?.setFilterValue(event.target.value)
                     }
                     className="max-w-sm"
                 />

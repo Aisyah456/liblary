@@ -29,6 +29,7 @@ import {
     TYPE (Sesuai DB Schema)
 ===================== */
 export type TurnitinSubmission = {
+  updated_at: any;
   id: number;
   major_id: number;
   identifier_id: string;

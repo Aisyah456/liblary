@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
-import Footer from '@/Components/home/Footer';
-import Navbar from '@/Components/home/Navbar';
+import Footer from '@/components/home/Footer';
+import Navbar from '@/components/home/Navbar';
 
 
 import { Mail, Phone, MapPin, Send, MessageCircle, Clock, Globe, ChevronDown, CheckCircle2 } from 'lucide-react';
@@ -15,7 +15,7 @@ export default function Contact() {
         pesan: '',
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
         post(route('messages.store'), {

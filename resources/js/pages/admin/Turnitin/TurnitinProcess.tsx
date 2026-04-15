@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import {
-    Plus, FileSearch, Filter, Download,
+    Plus, FileSearch, Download,
     Clock, Loader2, AlertCircle
 } from "lucide-react";
 import { useEffect, useState, useMemo } from 'react';
@@ -15,7 +15,7 @@ import AddSubmissionModal from '@/components/admin/turnitinProcess/AddSubmission
 import ProcessTurnitinModal from '@/components/admin/turnitinProcess/ProcessTurnitinModal';
 
 /* =========================
-    TYPES (Sesuai Form & DB)
+    TYPES
 ========================= */
 export interface TurnitinSubmission {
     id: number;
@@ -33,14 +33,22 @@ export interface TurnitinSubmission {
     result_file_path: string | null;
     admin_notes: string | null;
     created_at: string;
-    // Relationships
+    updated_at: string; // Tambahkan ini
     major?: { id: number; name: string; };
     faculty?: { id: number; name: string; };
+
+    // Virtual property untuk sinkronisasi modal
+    result?: {
+        similarity_percentage?: number;
+        check_date?: string;
+        librarian_notes?: string;
+        verdict?: string;
+    };
 }
 
 interface Props {
     submissions: TurnitinSubmission[];
-    faculties: any[]; // Ditambahkan untuk modal add
+    faculties: any[];
 }
 
 const BREADCRUMBS = [{ title: 'Turnitin Process', href: '#' }];
@@ -51,20 +59,17 @@ export default function TurnitinProcess({ submissions = [], faculties }: Props) 
     const [processModalOpen, setProcessModalOpen] = useState(false);
     const [addModalOpen, setAddModalOpen] = useState(false);
 
+    // Update internal state jika props dari Inertia berubah
     useEffect(() => {
         setData(Array.isArray(submissions) ? submissions : []);
     }, [submissions]);
 
-    const onProcess = (item: TurnitinSubmission) => {
-        setSelectedSubmission(item);
-        setProcessModalOpen(true);
-    };
-
+    // Menghitung statistik berdasarkan data terbaru
     const stats = useMemo(() => [
         { label: 'Total Antrean', value: data.length, icon: FileSearch, color: 'text-indigo-600', bg: 'bg-indigo-50' },
         { label: 'Pending', value: data.filter(s => s.status === 'pending').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
         { label: 'Proses', value: data.filter(s => s.status === 'processing').length, icon: Loader2, color: 'text-teal-600', bg: 'bg-teal-50' },
-        { label: 'Ditolak', value: data.filter(s => s.status === 'rejected').length, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+        { label: 'Selesai', value: data.filter(s => s.status === 'completed').length, icon: AlertCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     ], [data]);
 
     return (
@@ -120,7 +125,8 @@ export default function TurnitinProcess({ submissions = [], faculties }: Props) 
                     <main className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
                         <div className="p-4">
                             <DataTable
-                                columns={columns(onProcess)}
+                                /* PERBAIKAN DI SINI: Mengirimkan dua setter sesuai kebutuhan columns.tsx */
+                                columns={columns(setProcessModalOpen, setSelectedSubmission)}
                                 data={data}
                                 searchKey="full_name"
                             />
@@ -129,22 +135,22 @@ export default function TurnitinProcess({ submissions = [], faculties }: Props) 
                 </section>
             </div>
 
+            {/* MODAL ADD */}
             <AddSubmissionModal
                 isOpen={addModalOpen}
                 onClose={() => setAddModalOpen(false)}
                 faculties={faculties}
             />
 
-            {selectedSubmission && (
-                <ProcessTurnitinModal
-                    isOpen={processModalOpen}
-                    submission={selectedSubmission}
-                    onClose={() => {
-                        setProcessModalOpen(false);
-                        setSelectedSubmission(null);
-                    }}
-                />
-            )}
+            {/* MODAL PROCESS */}
+            <ProcessTurnitinModal
+                isOpen={processModalOpen}
+                submission={selectedSubmission}
+                onClose={() => {
+                    setProcessModalOpen(false);
+                    setSelectedSubmission(null);
+                }}
+            />
         </AppLayout>
     );
 }

@@ -18,7 +18,7 @@ const iconMap = {
     list: <ClipboardList size={32} color="#0ea5e9" />,
 };
 
-export default function Services({ services }) {
+export default function Services({ services }:any) {
     
     const displayServices = services && services.length > 0 ? services : [
         { id: 1, title: "E-Resources", description: "Akses koleksi tugas akhir digital.", icon: "book" },
@@ -41,7 +41,7 @@ export default function Services({ services }) {
                 </HeaderInfo>
 
                 <ServiceGrid>
-                    {displayServices.map((service) => (
+                    {displayServices.map((service: { id: React.Key | null | undefined; link: string; icon: string | number; title: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; subtitle: any; description: any; }) => (
                         <ServiceCard 
                             key={service.id} 
                             onClick={() => window.location.href = service.link || '#'}

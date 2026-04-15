@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TurnitinResultMail;
+use App\Models\Major;
 use App\Models\Submission;
 use App\Models\TurnitinResult;
+use App\Models\TurnitinSubmission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -16,74 +20,58 @@ class TurnitinProcessController extends Controller
     public function index()
     {
         return Inertia::render('admin/Turnitin/TurnitinProcess', [
-            'submissions' => Submission::with(['result', 'user'])->latest()->get(),
+            'submissions' => TurnitinSubmission::with('major')->latest()->get(),
+            'faculties' => Major::all(), // Asumsi data prodi diambil dari sini
         ]);
     }
 
     /**
      * Simpan Pengajuan Baru (Sub Menu 1)s
      */
-    public function store(Request $request)
+
+
+    public function storeResult(Request $request)
     {
-        $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'identifier_id' => 'required|string|max:50',
-            'title' => 'required|string|max:500',
-            'document_type' => 'required|in:Skripsi,Tesis,Artikel',
-            'file' => 'required|file|mimes:pdf,doc,docx|max:10240', // 10MB
+        $request->validate([
+            'submission_id' => 'required|exists:turnitin_submissions,id',
+            'similarity_percentage' => 'required|numeric|min:0|max:100',
+            'verdict' => 'required|in:Lulus,Revisi,Ditolak',
+            'check_date' => 'required|date',
+            'evidence_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'librarian_notes' => 'nullable|string',
         ]);
 
-        if ($request->hasFile('file')) {
-            // Simpan file asli di folder private
-            $validated['file_path'] = $request->file('file')->store('turnitin/submissions', 'private');
+        $submission = TurnitinSubmission::findOrFail($request->submission_id);
+
+        // Tentukan status untuk DB (mapping dari verdict modal ke enum status migrasi)
+        // Lulus -> completed | Revisi/Ditolak -> rejected
+        $finalStatus = ($request->verdict === 'Lulus') ? 'completed' : 'rejected';
+
+        if ($request->hasFile('evidence_file')) {
+            $path = $request->file('evidence_file')->store('turnitin/results', 'private');
+            $submission->result_file_path = $path;
         }
 
-        // Set status awal sebagai Pending
-        $validated['status'] = 'Pending';
-        $validated['user_id'] = auth()->id();
+        $submission->update([
+            'similarity_percentage' => $request->similarity_percentage,
+            'status' => $finalStatus,
+            'admin_notes' => $request->librarian_notes, // Menyimpan catatan ke kolom admin_notes
+        ]);
 
-        Submission::create($validated);
+        // Kirim Email via Mailable
+        try {
+            \Illuminate\Support\Facades\Mail::to($submission->email)
+                ->send(new \App\Mail\TurnitinResultMail($submission));
 
-        return redirect()->back()->with('success', 'Pengajuan berhasil ditambahkan.');
+            return redirect()->back()->with('success', 'Hasil berhasil diproses dan email terkirim!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('success', 'Data tersimpan, tapi email gagal: ' . $e->getMessage());
+        }
     }
 
     /**
      * Simpan Hasil Pengecekan Turnitin (Sub Menu 2)
      */
-    public function storeResult(Request $request)
-    {
-        $request->validate([
-            'submission_id' => 'required|exists:submissions,id',
-            'similarity_percentage' => 'required|numeric|min:0|max:100',
-            'check_date' => 'required|date',
-            'verdict' => 'required|in:Lulus,Revisi,Ditolak',
-            'evidence_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB
-            'librarian_notes' => 'nullable|string',
-        ]);
-
-        // 1. Simpan Bukti Hasil (PDF/Screenshot)
-        $evidencePath = $request->file('evidence_file')->store('turnitin/evidence', 'private');
-
-        // 2. Gunakan updateOrCreate untuk data Result
-        TurnitinResult::updateOrCreate(
-            ['submission_id' => $request->submission_id],
-            [
-                'similarity_percentage' => $request->similarity_percentage,
-                'check_date' => $request->check_date,
-                'librarian_notes' => $request->librarian_notes,
-                'evidence_path' => $evidencePath,
-                'processed_by' => auth()->id(),
-                'verdict' => $request->verdict,
-            ]
-        );
-
-        // 3. Update status di tabel Submission menjadi Completed
-        Submission::where('id', $request->submission_id)->update([
-            'status' => 'Completed',
-        ]);
-
-        return redirect()->back()->with('success', 'Hasil Turnitin berhasil diperbarui.');
-    }
 
     /**
      * Download File Dokumen Private

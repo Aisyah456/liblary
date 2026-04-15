@@ -10,7 +10,10 @@ import {
   FileCheck,
   ExternalLink,
   Mail,
-  GraduationCap
+  GraduationCap,
+  Loader2,
+  CheckCircle2,
+  BookOpen
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,8 +27,27 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Import Type
-import type { TurnitinSubmission } from "@/pages/admin/Turnitin/TurnitinProcess";
+/* =====================
+    TYPES & INTERFACES
+===================== */
+export interface TurnitinSubmission {
+  id: number;
+  major_id: number;
+  major?: { name: string }; // Asumsi relasi di model Laravel
+  identifier_id: string;
+  full_name: string;
+  email: string;
+  title: string;
+  document_type: string;
+  file_path: string;
+  academic_year: string;
+  status: 'pending' | 'processing' | 'completed' | 'rejected';
+  similarity_percentage: number | null;
+  result_file_path: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 /* =====================
     DELETE ACTION
@@ -39,7 +61,7 @@ const handleDelete = (id: number) => {
 };
 
 /* =====================
-    COLUMNS
+    COLUMNS DEFINITION
 ===================== */
 export const columns = (
   setProcessModalOpen: (open: boolean) => void,
@@ -66,7 +88,7 @@ export const columns = (
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="font-semibold text-slate-900">{row.original.full_name}</span>
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+          <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
             <span className="bg-slate-100 px-1.5 py-0.5 rounded font-mono font-bold text-slate-700">
               {row.original.identifier_id}
             </span>
@@ -74,6 +96,14 @@ export const columns = (
             <span className="flex items-center gap-0.5">
               <Mail className="h-2.5 w-2.5" /> {row.original.email}
             </span>
+            {row.original.major && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-0.5">
+                  <BookOpen className="h-2.5 w-2.5" /> {row.original.major.name}
+                </span>
+              </>
+            )}
           </div>
         </div>
       ),
@@ -82,7 +112,7 @@ export const columns = (
       accessorKey: "title",
       header: "Detail Dokumen",
       cell: ({ row }) => (
-        <div className="flex flex-col max-w-[280px]">
+        <div className="flex flex-col max-w-70">
           <div className="flex items-start gap-2">
             <FileText className="h-4 w-4 text-teal-500 shrink-0 mt-0.5" />
             <span className="font-medium line-clamp-2 text-xs leading-relaxed">{row.original.title}</span>
@@ -125,7 +155,7 @@ export const columns = (
             </Badge>
             {row.original.updated_at && (
               <span className="text-[9px] text-slate-400 uppercase tracking-tighter">
-                Diperbarui: {new Date(row.original.updated_at).toLocaleDateString('id-ID')}
+                Update: {new Date(row.original.updated_at).toLocaleDateString('id-ID')}
               </span>
             )}
           </div>
@@ -144,9 +174,12 @@ export const columns = (
           rejected: { label: 'Ditolak', color: 'bg-rose-100 text-rose-700', icon: AlertCircle },
         };
         const config = configs[status] || configs.pending;
+        const Icon = config.icon;
 
         return (
-          <Badge className={`${config.color} border-none shadow-none font-bold text-[10px] uppercase tracking-wider px-2 py-0.5`}>
+          <Badge className={`${config.color} border-none shadow-none font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 flex items-center gap-1 w-fit`}>
+            {status === 'processing' && <Icon className="h-3 w-3 animate-spin" />}
+            {status !== 'processing' && <Icon className="h-3 w-3" />}
             {config.label}
           </Badge>
         );
@@ -157,20 +190,23 @@ export const columns = (
       cell: ({ row }) => {
         const submission = row.original;
 
+        const handleOpenProcess = () => {
+          setSelectedSubmission(submission);
+          setProcessModalOpen(true);
+        };
+
+
         return (
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              variant="default"
-              className="h-8 bg-teal-600 hover:bg-teal-700 shadow-sm"
-              onClick={() => {
-                setSelectedSubmission(submission);
-                setProcessModalOpen(true);
-              }}
+              className="bg-teal-600 hover:bg-teal-700 h-8 gap-1"
+              onClick={handleOpenProcess}
             >
-              <FileCheck className="w-3.5 h-3.5 mr-1.5" />
+              <FileCheck className="h-3.5 w-3.5" />
               Proses
             </Button>
+
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -207,6 +243,3 @@ export const columns = (
       }
     }
   ];
-
-// Helper icon untuk Loader di status (opsional jika Loader2 diimport)
-import { Loader2 } from "lucide-react";

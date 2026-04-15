@@ -66,7 +66,7 @@
         // "mapRoot": "",                                    /* Specify the location where debugger should locate map files instead of generated locations. */
         // "inlineSources": true,                            /* Include source code in the sourcemaps inside the emitted JavaScript. */
         // "emitBOM": true,                                  /* Emit a UTF-8 Byte Order Mark (BOM) in the beginning of output files. */
-        // "newLine": "crlf",                                /* Set the newline character for emitting files. */
+        // "newLines": "crlf",                                /* Set the newline character for emitting files. */
         // "stripInternal": true,                            /* Disable emitting declarations that have '@internal' in their JSDoc comments. */
         // "noEmitHelpers": true,                            /* Disable generating custom helper functions like '__extends' in compiled output. */
         // "noEmitOnError": true,                            /* Disable emitting files if any type checking errors are reported. */
@@ -82,7 +82,7 @@
         // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
         "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
 
-        /* Type Checking */
+        /* Type Checking */ 
         "strict": true /* Enable all strict type-checking options. */,
         "noImplicitAny": true /* Enable error reporting for expressions and declarations with an implied 'any' type. */,
         // "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
@@ -107,11 +107,11 @@
         /* Completeness */
         // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
         "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-        "baseUrl": ".",
+        // "baseUrl": ".",
         "paths": {
             "@/*": ["./resources/js/*"]
         },
         "jsx": "react-jsx"
     },
-    "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.tsx"]
+    "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.tsx", "resources/js/components/home/Hero.jsx"]
 }

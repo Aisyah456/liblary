@@ -20,7 +20,9 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { TurnitinSubmission } from "@/Pages/Admin/TurnitinProcess/Index";
+
+import { route } from "ziggy-js";
+import { TurnitinSubmission } from "@/pages/admin/Turnitin/TurnitinProcess";
 
 interface ProcessTurnitinModalProps {
     isOpen: boolean;
@@ -65,13 +67,16 @@ export default function ProcessTurnitinModal({ isOpen, onClose, submission }: Pr
 
         post(route('turnitin.results.store'), {
             forceFormData: true,
-            onSuccess: () => handleClose(),
+            onSuccess: () => {
+                handleClose();
+
+            },
         });
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-125">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-indigo-700 font-bold">
                         <FileCheck className="h-5 w-5" />

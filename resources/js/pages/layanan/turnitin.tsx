@@ -1,5 +1,5 @@
-import Footer from '@/Components/home/Footer';
-import Navbar from '@/Components/home/Navbar';
+import Footer from '@/components/home/Footer';
+import Navbar from '@/components/home/Navbar';
 import { Head, Link } from '@inertiajs/react'; // Tambahkan Link di sini
 
 

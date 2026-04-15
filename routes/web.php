@@ -2,15 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
-
+// Public Controllers
 use App\Http\Controllers\Home\LandingPageController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\LibraryFreeController;
+use App\Http\Controllers\TurnitinSubmissionController;
+
+// Admin/CMS Controllers
 use App\Http\Controllers\Cms\HeroSectionController;
 use App\Http\Controllers\Cms\FeedbackController;
+use App\Http\Controllers\Cms\NewsController as AdminNewsController;
+use App\Http\Controllers\Cms\MessageController as AdminMessageController;
 use App\Http\Controllers\Api\LibraryFeedbackController;
 
 /*
@@ -27,40 +32,40 @@ Route::controller(NewsController::class)->group(function () {
     Route::get('news/{slug}', 'show')->name('news.show')->where('slug', '[a-z0-9\-]+');
 });
 Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
-
-// Profil
 Route::get('profil', [ProfilController::class, 'index'])->name('profil.index');
 
-/* | Layanan Static Routes (Direct Inertia Render)
+/*
+| Layanan Routes
 */
 Route::prefix('layanan')->group(function () {
     Route::inertia('sirkulasi', 'layanan/sirkulasi')->name('sirkulasi');
     Route::inertia('ruang-baca', 'layanan/ruang_baca')->name('ruang-baca');
-    Route::inertia('bebas-pustaka', 'layanan/bebas-pustaka')->name('pustakas');
     Route::inertia('form-bebas-pustaka', 'layanan/form-pustaka')->name('form-bebas-pustaka');
     Route::inertia('cek-turnitin', 'layanan/turnitin')->name('cek-turnitin');
-
-    Route::get('/form-cek-turnitin', [App\Http\Controllers\TurnitinSubmissionController::class, 'create'])->name('form-cek-turnitin.create');
-    Route::post('/form-cek-turnitin/store', [App\Http\Controllers\TurnitinSubmissionController::class, 'store'])->name('form-cek-turnitin.store');
-
-
     Route::inertia('e-journal', 'layanan/journals')->name('e-journal');
 
-    Route::get('kontak', [App\Http\Controllers\Api\MessageController::class, 'index'])->name('messages.index');
+    // Bebas Pustaka - Public Submission
+    Route::resource('bebas-pustaka', LibraryFreeController::class)->only(['index', 'store']);
+
+    // Turnitin - Public Submission
+    Route::get('form-cek-turnitin', [TurnitinSubmissionController::class, 'create'])->name('form-cek-turnitin.create');
+    Route::post('form-cek-turnitin/store', [TurnitinSubmissionController::class, 'store'])->name('form-cek-turnitin.store');
+
+    Route::get('kontak', [App\Http\Controllers\Api\MessageController::class, 'index'])->name('layanan.kontak');
 });
 
 /*
-| API / Feedback Routes
+| API Routes
 */
-Route::prefix('api')->group(function () {
-    Route::post('/library-feedback', [LibraryFeedbackController::class, 'store']);
-    Route::get('/services', [App\Http\Controllers\Api\ServiceController::class, 'index']);
-    Route::post('/kontak/send', [App\Http\Controllers\Api\MessageController::class, 'store'])->name('messages.store');
+Route::prefix('api')->name('api.')->group(function () {
+    Route::post('/library-feedback', [LibraryFeedbackController::class, 'store'])->name('feedback.store');
+    Route::get('/services', [App\Http\Controllers\Api\ServiceController::class, 'index'])->name('services.index');
+    Route::post('/kontak/send', [App\Http\Controllers\Api\MessageController::class, 'store'])->name('messages.send');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Admin / CMS Routes (Authenticated)
+| Authenticated Routes (Admin & CMS)
 |--------------------------------------------------------------------------
 */
 
@@ -69,25 +74,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('dashboard', fn() => Inertia::render('Dashboard'))->name('Dashboard');
 
-    Route::middleware(['auth', 'verified'])->group(function () {
-        Route::prefix('admin')->group(function () {
-            Route::resource('partners', App\Http\Controllers\PartnerController::class);
-            Route::resource('articles', App\Http\Controllers\Api\ArticleController::class);
-            Route::resource('services', App\Http\Controllers\ServiceController::class);
-            Route::post('news/{news}', [App\Http\Controllers\Cms\NewsController::class, 'update'])->name('news.update.post');
-            Route::resource('news', App\Http\Controllers\Cms\NewsController::class);
-            Route::get('/messages', [App\Http\Controllers\Cms\MessageController::class, 'index'])->name('messages.index');
-            Route::resource('turnitin', App\Http\Controllers\TurnitinProcessController::class);
-        });
+    // Admin Resources Group
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('partners', App\Http\Controllers\PartnerController::class);
+        Route::resource('articles', App\Http\Controllers\Api\ArticleController::class);
+        Route::resource('services', App\Http\Controllers\ServiceController::class);
+
+        // News Management with POST override for Update (Multipart/form-data fix)
+        Route::post('news/{news}', [AdminNewsController::class, 'update'])->name('news.update.post');
+        Route::resource('news', AdminNewsController::class);
+
+        Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
+
+        // Turnitin Process
+        Route::post('turnitin/results', [App\Http\Controllers\TurnitinProcessController::class, 'storeResult'])->name('turnitin.results.store');
+        Route::resource('turnitin', App\Http\Controllers\TurnitinProcessController::class);
     });
 
     // CMS Management Group
-    Route::prefix('cms')->group(function () {
+    Route::prefix('cms')->name('cms.')->group(function () {
 
-        // Resources Utama
         Route::resources([
             'hero'             => HeroSectionController::class,
-     
             'student'          => App\Http\Controllers\StudentController::class,
             'lecturers'        => App\Http\Controllers\LecturerController::class,
             'memberships'      => App\Http\Controllers\MembershipController::class,
@@ -97,14 +105,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'shelves'          => App\Http\Controllers\ShelfController::class,
             'borrowings'       => App\Http\Controllers\BorrowingController::class,
             'bebas-pustaka'    => App\Http\Controllers\LibraryFreeController::class,
-           
+            'feedback'         => FeedbackController::class,
         ]);
 
-        // Feedback Management
-        Route::resource('feedback', FeedbackController::class);
         Route::resource('library-feedback', LibraryFeedbackController::class)->only(['index', 'show', 'destroy']);
 
-        // Turnitin Sub-System
+        // Turnitin Sub-System CMS
         Route::prefix('turnitin')->name('turnitin.')->group(function () {
             Route::resource('submissions', App\Http\Controllers\SubmissionController::class);
             Route::post('results', [App\Http\Controllers\SubmissionController::class, 'storeResult'])->name('results.store');
@@ -112,7 +118,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('process', App\Http\Controllers\TurnitinProcessController::class);
         });
 
-        // Other Library Admin Services
+        // Other Admin Services
         Route::resources([
             'references'         => App\Http\Controllers\BookReferenceController::class,
             'library-clearances' => App\Http\Controllers\LibraryClearanceController::class,
@@ -120,8 +126,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'eresource-access'   => App\Http\Controllers\EresourceAccesController::class,
         ]);
 
-        // API Internal for CMS
-        Route::get('/api/majors/{facultyId}', [App\Http\Controllers\LibraryFreeController::class, 'getMajors']);
+        // Internal CMS API
+        Route::get('/api/majors/{facultyId}', [App\Http\Controllers\LibraryFreeController::class, 'getMajors'])->name('api.majors');
     });
 });
 
