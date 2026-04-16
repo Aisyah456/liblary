@@ -17,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select";
+import { route } from "ziggy-js";
 
 interface Faculty {
     id: number;
@@ -42,6 +43,7 @@ export default function AddLibraryFreeModal({
     faculties,
     majors,
 }: LibraryFreeModalProps) {
+    // Sesuaikan keys dengan field yang diekspektasikan Controller (biasanya tanpa '_path' untuk upload)
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         full_name: "",
         nim: "",
@@ -50,7 +52,7 @@ export default function AddLibraryFreeModal({
         faculty_id: "",
         major_id: "",
         degree_level: "",
-        purpose: "",
+        purpose: "", // Menampung keperluan (Wisuda, Pindah, dll)
         entry_year: new Date().getFullYear().toString(),
         graduation_year: new Date().getFullYear().toString(),
         scientific_paper: null as File | null,
@@ -66,21 +68,22 @@ export default function AddLibraryFreeModal({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Mengirimkan data sebagai multipart/form-data otomatis oleh Inertia karena ada File
-        post('/library-frees', {
+
+        // Catatan: Laravel akan menerima file ini dan Anda harus menyimpannya 
+        // lalu memasukkan path-nya ke kolom 'scientific_paper_path' dst di database.
+        post(route('library-frees.store'), {
             preserveScroll: true,
             onSuccess: () => handleClose(),
         });
     };
 
-    // Filter jurusan berdasarkan fakultas yang dipilih
     const filteredMajors = (majors || []).filter(
         (major) => major.faculty_id === Number(data.faculty_id)
     );
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[650px] max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Pengajuan Bebas Pustaka</DialogTitle>
                     <DialogDescription>
@@ -88,7 +91,7 @@ export default function AddLibraryFreeModal({
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="grid gap-6 py-4">
+                <form onSubmit={handleSubmit} className="grid gap-5 py-2">
                     {/* Informasi Dasar */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
@@ -98,8 +101,9 @@ export default function AddLibraryFreeModal({
                                 value={data.full_name}
                                 onChange={(e) => setData("full_name", e.target.value)}
                                 placeholder="Nama sesuai KTM"
+                                className={errors.full_name ? "border-destructive" : ""}
                             />
-                            {errors.full_name && <p className="text-xs text-destructive">{errors.full_name}</p>}
+                            {errors.full_name && <p className="text-[10px] text-destructive">{errors.full_name}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="nim">NIM</Label>
@@ -108,8 +112,9 @@ export default function AddLibraryFreeModal({
                                 value={data.nim}
                                 onChange={(e) => setData("nim", e.target.value)}
                                 placeholder="Nomor Induk Mahasiswa"
+                                className={errors.nim ? "border-destructive" : ""}
                             />
-                            {errors.nim && <p className="text-xs text-destructive">{errors.nim}</p>}
+                            {errors.nim && <p className="text-[10px] text-destructive">{errors.nim}</p>}
                         </div>
                     </div>
 
@@ -124,7 +129,7 @@ export default function AddLibraryFreeModal({
                                 onChange={(e) => setData("email", e.target.value)}
                                 placeholder="Email aktif"
                             />
-                            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                            {errors.email && <p className="text-[10px] text-destructive">{errors.email}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="phone">No. WhatsApp</Label>
@@ -134,18 +139,18 @@ export default function AddLibraryFreeModal({
                                 onChange={(e) => setData("phone_number", e.target.value)}
                                 placeholder="0812..."
                             />
-                            {errors.phone_number && <p className="text-xs text-destructive">{errors.phone_number}</p>}
+                            {errors.phone_number && <p className="text-[10px] text-destructive">{errors.phone_number}</p>}
                         </div>
                     </div>
 
-                    {/* Akademik */}
+                    {/* Relasi Akademik */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label>Fakultas</Label>
                             <Select
+                                value={data.faculty_id}
                                 onValueChange={(value) => {
-                                    setData("faculty_id", value);
-                                    setData("major_id", ""); // Reset jurusan jika fakultas ganti
+                                    setData(d => ({ ...d, faculty_id: value, major_id: "" }));
                                 }}
                             >
                                 <SelectTrigger>
@@ -157,11 +162,12 @@ export default function AddLibraryFreeModal({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.faculty_id && <p className="text-xs text-destructive">{errors.faculty_id}</p>}
+                            {errors.faculty_id && <p className="text-[10px] text-destructive">{errors.faculty_id}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label>Program Studi</Label>
                             <Select
+                                value={data.major_id}
                                 disabled={!data.faculty_id}
                                 onValueChange={(value) => setData("major_id", value)}
                             >
@@ -174,60 +180,91 @@ export default function AddLibraryFreeModal({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.major_id && <p className="text-xs text-destructive">{errors.major_id}</p>}
+                            {errors.major_id && <p className="text-[10px] text-destructive">{errors.major_id}</p>}
                         </div>
                     </div>
 
-                    {/* Data Lulus */}
+                    {/* Data Lulus & Keperluan */}
                     <div className="grid grid-cols-3 gap-4">
                         <div className="grid gap-2">
-                            <Label>Jenjang</Label>
-                            <Select onValueChange={(v) => setData("degree_level", v)}>
+                            <Label>Jenjang (Degree)</Label>
+                            <Select value={data.degree_level} onValueChange={(v) => setData("degree_level", v)}>
                                 <SelectTrigger><SelectValue placeholder="Jenjang" /></SelectTrigger>
                                 <SelectContent>
                                     {['D3', 'S1', 'S2', 'S3'].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                                 </SelectContent>
                             </Select>
+                            {errors.degree_level && <p className="text-[10px] text-destructive">{errors.degree_level}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label>Tahun Masuk</Label>
                             <Input type="number" value={data.entry_year} onChange={e => setData("entry_year", e.target.value)} />
+                            {errors.entry_year && <p className="text-[10px] text-destructive">{errors.entry_year}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label>Tahun Lulus</Label>
                             <Input type="number" value={data.graduation_year} onChange={e => setData("graduation_year", e.target.value)} />
+                            {errors.graduation_year && <p className="text-[10px] text-destructive">{errors.graduation_year}</p>}
                         </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="purpose">Keperluan</Label>
+                        <Select value={data.purpose} onValueChange={(v) => setData("purpose", v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Pilih Keperluan Pengajuan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Wisuda">Persyaratan Wisuda</SelectItem>
+                                <SelectItem value="Pindah">Pindah Kuliah</SelectItem>
+                                <SelectItem value="Pengambilan Ijazah">Pengambilan Ijazah</SelectItem>
+                                <SelectItem value="Lainnya">Lainnya</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.purpose && <p className="text-[10px] text-destructive">{errors.purpose}</p>}
                     </div>
 
                     {/* File Uploads */}
                     <div className="grid gap-4 p-4 border rounded-lg bg-muted/30">
                         <div className="grid gap-2">
-                            <Label htmlFor="paper">File Karya Ilmiah (PDF)</Label>
+                            <Label htmlFor="paper" className="text-sm font-semibold">File Karya Ilmiah (PDF)</Label>
                             <Input
                                 id="paper"
                                 type="file"
                                 accept=".pdf"
                                 onChange={(e) => setData("scientific_paper", e.target.files ? e.target.files[0] : null)}
                             />
-                            {errors.scientific_paper && <p className="text-xs text-destructive">{errors.scientific_paper}</p>}
+                            <p className="text-[10px] text-muted-foreground italic">*Wajib: File Tugas Akhir/Skripsi/Tesis dalam format PDF.</p>
+                            {errors.scientific_paper && <p className="text-[10px] text-destructive">{errors.scientific_paper}</p>}
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="ktm">Scan KTM (Gambar/PDF)</Label>
+                            <Label htmlFor="ktm" className="text-sm font-semibold">Scan KTM (JPG/PNG/PDF)</Label>
                             <Input
                                 id="ktm"
                                 type="file"
+                                accept=".jpg,.jpeg,.png,.pdf"
                                 onChange={(e) => setData("ktm_scan", e.target.files ? e.target.files[0] : null)}
                             />
-                            {errors.ktm_scan && <p className="text-xs text-destructive">{errors.ktm_scan}</p>}
+                            {errors.ktm_scan && <p className="text-[10px] text-destructive">{errors.ktm_scan}</p>}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="proof" className="text-sm font-semibold">Bukti Upload Repositori (Opsional)</Label>
+                            <Input
+                                id="proof"
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.pdf"
+                                onChange={(e) => setData("upload_proof", e.target.files ? e.target.files[0] : null)}
+                            />
+                            {errors.upload_proof && <p className="text-[10px] text-destructive">{errors.upload_proof}</p>}
                         </div>
                     </div>
 
-                    <DialogFooter>
+                    <DialogFooter className="gap-2 sm:gap-0">
                         <Button type="button" variant="outline" onClick={handleClose} disabled={processing}>
                             Batal
                         </Button>
                         <Button type="submit" disabled={processing}>
-                            {processing ? "Mengunggah Data..." : "Ajukan Bebas Pustaka"}
+                            {processing ? "Sedang Mengirim..." : "Ajukan Bebas Pustaka"}
                         </Button>
                     </DialogFooter>
                 </form>

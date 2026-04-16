@@ -70,16 +70,19 @@ export default function LibraryFreeForm({ faculties, majors }: Props) {
             degree_level: selectedMajor ? selectedMajor.degree_level : ''
         }));
     };
-
+    
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        post(route('library-free.store'), {
+        // Gunakan nama route yang sesuai dengan Resource Controller
+        post(route('bebas-pustaka.store'), {
             forceFormData: true,
             onSuccess: () => {
                 reset();
-                // Opsional: Gunakan toast library di sini
                 alert('Pengajuan berhasil dikirim!');
             },
+            onError: (errors) => {
+                console.log(errors); // Cek error validasi di console jika gagal
+            }
         });
     };
 

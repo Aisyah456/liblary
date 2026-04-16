@@ -1,5 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
-import { useMemo, FormEvent, ChangeEvent, ReactNode, ElementType } from 'react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { useMemo, FormEvent, ChangeEvent, ReactNode, ElementType, useState, useEffect } from 'react';
 import {
     Send,
     UploadCloud,
@@ -15,7 +15,7 @@ import {
 import Footer from '@/components/home/Footer';
 import Navbar from '@/components/home/Navbar';
 import { route } from 'ziggy-js';
-
+import { CheckCircle2, X } from 'lucide-react'; 
 // Interface Definitions
 interface Faculty { id: number; name: string; }
 interface Major { id: number; name: string; faculty_id: number; degree_level: string; }
@@ -38,6 +38,9 @@ interface FormData {
 }
 
 export default function LibraryFreeForm({ faculties, majors }: Props) {
+    const { flash } = usePage<{ flash: { success?: string } }>().props;
+    const [showToast, setShowToast] = useState(false);
+
     const { data, setData, post, processing, errors, reset } = useForm<FormData>({
         full_name: '',
         nim: '',
@@ -78,17 +81,25 @@ export default function LibraryFreeForm({ faculties, majors }: Props) {
         }));
     };
 
+    useEffect(() => {
+        if (flash.success) {
+            setShowToast(true);
+            const timer = setTimeout(() => setShowToast(false), 5000); // Hilang setelah 5 detik
+            return () => clearTimeout(timer);
+        }
+    }, [flash.success]);
+
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        // forceFormData: true wajib digunakan saat mengirim file via Inertia
-        post(route('library-free.store'), {
+        post(route('bebas-pustaka.store'), {
             forceFormData: true,
             onSuccess: () => {
                 reset();
-                alert('Pengajuan berhasil dikirim!');
+                // Notifikasi akan muncul otomatis via useEffect di atas
             },
         });
     };
+
 
     // --- Reusable Styled Components ---
 
@@ -115,6 +126,20 @@ export default function LibraryFreeForm({ faculties, majors }: Props) {
     return (
         <>
             <Head title="Bebas Pustaka - UMHT" />
+            <div className={`fixed top-10 left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 transform ${showToast ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0 pointer-events-none'}`}>
+                <div className="bg-white border border-emerald-100 shadow-2xl shadow-emerald-200/50 rounded-2xl px-6 py-4 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center">
+                        <CheckCircle2 size={24} />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold text-slate-800">Berhasil Dikirim!</h4>
+                        <p className="text-xs text-slate-500">{flash.success}</p>
+                    </div>
+                    <button onClick={() => setShowToast(false)} className="ml-4 text-slate-400 hover:text-slate-600">
+                        <X size={18} />
+                    </button>
+                </div>
+            </div>
             <div className="min-h-screen bg-[#F8FAFC] selection:bg-indigo-100 selection:text-indigo-700">
                 <Navbar auth={undefined} />
 

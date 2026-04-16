@@ -15,8 +15,8 @@ class LibraryFreeController extends Controller
     {
         return Inertia::render('admin/bebasustaka/LibraryFree', [
             'submissions' => LibraryFree::with(['faculty', 'major'])->latest()->get(),
-            'faculties' => Faculty::all(['id', 'name']), // Pastikan ini ada
-            'majors' => Major::all(['id', 'name', 'faculty_id']), // Pastikan ini ada
+            'faculties' => Faculty::all(['id', 'name']),
+            'majors' => Major::all(['id', 'name', 'faculty_id', 'degree_level']), // PERBAIKAN DI SINI
         ]);
     }
 
@@ -30,44 +30,34 @@ class LibraryFreeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'nim' => 'required|string|unique:library_frees,nim', // Pastikan nama tabel benar
-            'faculty_id' => 'required|exists:faculties,id',
-            'major_id' => 'required|exists:majors,id',
-            'phone_number' => 'required|string',
-            'email' => 'required|email',
-            'degree_level' => 'required',
-            'purpose' => 'required',
-            'entry_year' => 'required|digits:4',
-            'graduation_year' => 'required|digits:4',
-            'scientific_paper' => 'required|mimes:pdf|max:10000',
-            'ktm_scan' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'upload_proof' => 'nullable|mimes:pdf,jpg,png|max:2048',
+            'full_name'             => 'required|string|max:255',
+            'nim'                   => 'required|string|unique:library_frees,nim',
+            'faculty_id'            => 'required|exists:faculties,id',
+            'major_id'              => 'required|exists:majors,id',
+            'phone_number'          => 'required|string',
+            'email'                 => 'required|email',
+            'degree_level'          => 'required',
+            'purpose'               => 'required',
+            'entry_year'            => 'required|digits:4',
+            'graduation_year'       => 'required|digits:4',
+            'scientific_paper_path' => 'required|file|mimes:pdf|max:10000', // Gunakan 'file'
+            'ktm_scan_path'         => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'upload_proof_path'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // Proses Simpan File
-        $paperPath = $request->file('scientific_paper')->store('library/papers', 'public');
-        $ktmPath = $request->file('ktm_scan')->store('library/ktm', 'public');
-        $proofPath = $request->hasFile('upload_proof')
-            ? $request->file('upload_proof')->store('library/proofs', 'public')
+        // Simpan file
+        $paperPath = $request->file('scientific_paper_path')->store('library/papers', 'public');
+        $ktmPath   = $request->file('ktm_scan_path')->store('library/ktm', 'public');
+        $proofPath = $request->hasFile('upload_proof_path')
+            ? $request->file('upload_proof_path')->store('library/proofs', 'public')
             : null;
 
-        LibraryFree::create([
-            'full_name' => $validated['full_name'],
-            'nim' => $validated['nim'],
-            'faculty_id' => $validated['faculty_id'],
-            'major_id' => $validated['major_id'],
-            'phone_number' => $validated['phone_number'],
-            'email' => $validated['email'],
-            'degree_level' => $validated['degree_level'],
-            'purpose' => $validated['purpose'],
-            'entry_year' => $validated['entry_year'],
-            'graduation_year' => $validated['graduation_year'],
+        LibraryFree::create(array_merge($validated, [
             'scientific_paper_path' => $paperPath,
-            'ktm_scan_path' => $ktmPath,
-            'upload_proof_path' => $proofPath,
-            'status' => 'pending',
-        ]);
+            'ktm_scan_path'         => $ktmPath,
+            'upload_proof_path'     => $proofPath,
+            'status'                => 'pending',
+        ]));
 
         return redirect()->back()->with('success', 'Permohonan berhasil ditambahkan.');
     }

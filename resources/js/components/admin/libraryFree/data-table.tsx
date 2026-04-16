@@ -1,10 +1,12 @@
 "use client"
 
+import * as React from "react"
 import type {
     ColumnDef,
     SortingState,
     ColumnFiltersState,
-    VisibilityState} from "@tanstack/react-table";
+    VisibilityState
+} from "@tanstack/react-table"
 import {
     flexRender,
     getCoreRowModel,
@@ -13,10 +15,9 @@ import {
     getFilteredRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { Settings2, ChevronLeft, ChevronRight, Search, Download, Filter } from "lucide-react"
-import * as React from "react"
+import { Settings2, ChevronLeft, ChevronRight, Search, Download, Filter, X } from "lucide-react"
+import * as XLSX from 'xlsx'
 
-import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -26,7 +27,6 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-
 import { Input } from "@/components/ui/input"
 import {
     Table,
@@ -36,6 +36,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -46,7 +47,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
     columns,
     data,
-    searchKey = "full_name", // Default pencarian diubah ke nama lengkap mahasiswa
+    searchKey = "full_name",
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -72,64 +73,78 @@ export function DataTable<TData, TValue>({
         },
     })
 
-    // Fungsi Export Excel disesuaikan dengan field Bebas Pustaka
     const exportToExcel = () => {
         const exportData = table.getFilteredRowModel().rows.map((row: any) => {
             const item = row.original;
             return {
-                ID: item.id,
-                NIM: item.nim,
-                Nama_Lengkap: item.full_name,
-                Email: item.email,
-                No_HP: item.phone_number,
-                // Asumsi data relasi faculty dan major di-load dari backend (eager loading)
-                Fakultas: item.faculty?.name || "-",
-                Jurusan: item.major?.name || "-",
-                Jenjang: item.degree_level,
-                Keperluan: item.purpose,
-                Tahun_Masuk: item.entry_year,
-                Tahun_Lulus: item.graduation_year,
-                Skor_Turnitin: item.turnitin_similarity_score ? `${item.turnitin_similarity_score}%` : "Belum ada",
-                Status: item.status,
-                Catatan_Admin: item.admin_notes || "-",
-                Tanggal_Pengajuan: new Date(item.created_at).toLocaleDateString('id-ID')
+                "ID": item.id,
+                "NIM": item.nim,
+                "Nama Lengkap": item.full_name,
+                "Email": item.email,
+                "No HP": item.phone_number,
+                "Fakultas": item.faculty?.name || "-",
+                "Jurusan": item.major?.name || "-",
+                "Jenjang": item.degree_level,
+                "Keperluan": item.purpose,
+                "Tahun Masuk": item.entry_year,
+                "Tahun Lulus": item.graduation_year,
+                "Skor Turnitin": item.turnitin_similarity_score ? `${item.turnitin_similarity_score}%` : "-",
+                "Status": item.status.toUpperCase(),
+                "Catatan Admin": item.admin_notes || "-",
+                "Tanggal Pengajuan": item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : "-"
             };
         });
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Bebas Pustaka");
-        XLSX.writeFile(workbook, "Data_Bebas_Pustaka.xlsx");
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Bebas Pustaka");
+
+        // Atur lebar kolom otomatis (Opsional tapi disarankan)
+        const maxWidth = 20;
+        worksheet["!cols"] = Object.keys(exportData[0] || {}).map(() => ({ wch: maxWidth }));
+
+        XLSX.writeFile(workbook, `Data_Bebas_Pustaka_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
+
+    const currentStatusFilter = table.getColumn("status")?.getFilterValue() as string;
 
     return (
         <div className="w-full space-y-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="relative flex-1 w-full max-sm:max-w-none max-w-sm">
+                <div className="relative flex-1 w-full max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder={`Cari nama mahasiswa...`}
+                        placeholder="Cari nama mahasiswa..."
                         value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
                             table.getColumn(searchKey)?.setFilterValue(event.target.value)
                         }
-                        className="pl-8"
+                        className="pl-8 bg-background"
                     />
                 </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                    {/* Filter Status Pengajuan */}
+                <div className="flex items-center gap-2 w-full md:w-auto justify-end overflow-x-auto pb-1 md:pb-0">
+                    {/* Status Filter Indicator */}
+                    {currentStatusFilter && (
+                        <Badge variant="secondary" className="h-9 gap-1 px-3 hidden lg:flex">
+                            Status: {currentStatusFilter}
+                            <X
+                                className="h-3 w-3 cursor-pointer"
+                                onClick={() => table.getColumn("status")?.setFilterValue(undefined)}
+                            />
+                        </Badge>
+                    )}
+
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-9 gap-2">
                                 <Filter className="h-4 w-4" />
-                                Status
+                                <span>Status</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuLabel>Filter Status</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {/* Disesuaikan dengan Enum di Database */}
                             {[
                                 { label: 'Menunggu', value: 'pending' },
                                 { label: 'Verifikasi', value: 'verifying' },
@@ -138,45 +153,50 @@ export function DataTable<TData, TValue>({
                             ].map((status) => (
                                 <DropdownMenuCheckboxItem
                                     key={status.value}
-                                    checked={table.getColumn("status")?.getFilterValue() === status.value}
-                                    onCheckedChange={(value) =>
-                                        table.getColumn("status")?.setFilterValue(value ? status.value : undefined)
+                                    checked={currentStatusFilter === status.value}
+                                    onCheckedChange={(checked) =>
+                                        table.getColumn("status")?.setFilterValue(checked ? status.value : undefined)
                                     }
                                 >
                                     {status.label}
                                 </DropdownMenuCheckboxItem>
                             ))}
-                            <DropdownMenuSeparator />
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full justify-start font-normal text-red-600 hover:text-red-700"
-                                onClick={() => table.getColumn("status")?.setFilterValue(undefined)}
-                            >
-                                Reset Filter
-                            </Button>
+                            {currentStatusFilter && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full justify-center font-medium text-destructive"
+                                        onClick={() => table.getColumn("status")?.setFilterValue(undefined)}
+                                    >
+                                        Hapus Filter
+                                    </Button>
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
 
                     <Button
                         variant="outline"
                         size="sm"
-                        className="h-9 gap-2 text-green-700 border-green-200 hover:bg-green-50"
+                        className="h-9 gap-2 text-green-700 border-green-200 hover:bg-green-50 hover:text-green-800"
                         onClick={exportToExcel}
+                        disabled={data.length === 0}
                     >
                         <Download className="h-4 w-4" />
-                        Export Excel
+                        <span className="hidden sm:inline">Export Excel</span>
                     </Button>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-9 lg:flex gap-2">
+                            <Button variant="outline" size="sm" className="h-9 gap-2">
                                 <Settings2 className="h-4 w-4" />
-                                Kolom
+                                <span className="hidden sm:inline">Kolom</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[150px]">
-                            <DropdownMenuLabel>Toggle Kolom</DropdownMenuLabel>
+                        <DropdownMenuContent align="end" className="w-[180px]">
+                            <DropdownMenuLabel>Tampilkan Kolom</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             {table
                                 .getAllColumns()
@@ -196,53 +216,61 @@ export function DataTable<TData, TValue>({
                 </div>
             </div>
 
-            <div className="rounded-md border bg-card overflow-hidden">
-                <Table>
-                    <TableHeader className="bg-muted/50">
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="font-semibold text-foreground">
-                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"} className="transition-colors hover:bg-muted/30">
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="py-3">
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
+            <div className="rounded-md border bg-card shadow-sm">
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader className="bg-muted/50">
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id} className="whitespace-nowrap px-4 py-3 font-bold text-foreground">
+                                            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
                                     ))}
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
-                                    Tidak ada data pengajuan bebas pustaka ditemukan.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && "selected"}
+                                        className="hover:bg-muted/50 data-[state=selected]:bg-muted"
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id} className="px-4 py-3">
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
+                                        Data tidak ditemukan.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
 
-            <div className="flex items-center justify-between px-2">
-                <div className="flex-1 text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+                <div className="text-sm text-muted-foreground order-2 sm:order-1">
                     {table.getFilteredSelectedRowModel().rows.length} dari{" "}
-                    {table.getFilteredRowModel().rows.length} data dipilih.
+                    {table.getFilteredRowModel().rows.length} baris dipilih.
                 </div>
 
-                <div className="flex items-center space-x-6 lg:space-x-8">
-                    <p className="text-sm font-medium text-muted-foreground">
-                        Halaman {table.getState().pagination.pageIndex + 1} dari{" "}
-                        {table.getPageCount()}
-                    </p>
-
+                <div className="flex items-center space-x-6 lg:space-x-8 order-1 sm:order-2">
+                    <div className="flex items-center space-x-2">
+                        <p className="text-sm font-medium">Halaman</p>
+                        <strong className="text-sm">
+                            {table.getState().pagination.pageIndex + 1} dari{" "}
+                            {table.getPageCount()}
+                        </strong>
+                    </div>
                     <div className="flex items-center space-x-2">
                         <Button
                             variant="outline"
@@ -252,7 +280,6 @@ export function DataTable<TData, TValue>({
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
-
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
