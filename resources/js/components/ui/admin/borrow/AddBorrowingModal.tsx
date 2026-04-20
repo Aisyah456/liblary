@@ -29,7 +29,7 @@ export default function AddBorrowingModal({ isOpen, onClose }: AddBorrowingModal
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.post("/borrowings", formData, {
+        router.post('/admin/borrowings', formData, {
             onSuccess: () => {
                 onClose();
                 setFormData({

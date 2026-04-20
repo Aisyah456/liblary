@@ -1,6 +1,7 @@
 import { useForm } from "@inertiajs/react";
 import { FileText, User, ExternalLink, CheckCircle2 } from "lucide-react";
 import { useEffect } from "react";
+import { route } from "ziggy-js";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+// Sesuaikan interface dengan schema database
 interface LibraryFree {
     id: number;
     full_name: string;
@@ -31,12 +33,12 @@ interface LibraryFree {
     major_id: number;
     degree_level: string;
     purpose: string;
-    entry_year: number | string;
-    graduation_year: number | string;
+    entry_year: number;
+    graduation_year: number;
     scientific_paper_path: string;
     ktm_scan_path: string;
     upload_proof_path?: string | null;
-    turnitin_similarity_score?: number | string | null;
+    turnitin_similarity_score: number | string | null; // decimal(5,2)
     turnitin_report_url?: string | null;
     status: 'pending' | 'verifying' | 'approved' | 'rejected';
     admin_notes?: string | null;
@@ -55,14 +57,15 @@ export default function EditLibraryFreeModal({
     onClose,
     dataItem,
 }: EditLibraryFreeModalProps) {
-    // Definisi form disesuaikan dengan skema database
+    // Form Hook dari Inertia
     const { data, setData, put, processing, errors, reset, clearErrors } = useForm({
         status: "pending" as LibraryFree['status'],
-        turnitin_similarity_score: "" as string | number, // decimal(5,2)
+        turnitin_similarity_score: "" as string | number,
         turnitin_report_url: "",
         admin_notes: "",
     });
 
+    // Sinkronisasi data saat modal dibuka
     useEffect(() => {
         if (isOpen && dataItem) {
             setData({
@@ -84,167 +87,186 @@ export default function EditLibraryFreeModal({
         e.preventDefault();
         if (!dataItem) return;
 
-        // URL diarahkan ke route admin (pastikan route Laravel sudah sesuai)
-        put(`/admin/bebas-pustaka/${dataItem.id}`, {
-            preserveScroll: true,
-            onSuccess: () => handleClose(),
+        put(route('admin.bebas-pustaka.update', dataItem.id), {
+            onSuccess: () => onClose(),
         });
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-[650px] max-h-[95vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-162.5 max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-indigo-600" />
+                    <DialogTitle className="flex items-center gap-2 text-xl">
+                        <CheckCircle2 className="h-6 w-6 text-indigo-600" />
                         Verifikasi Pengajuan Bebas Pustaka
                     </DialogTitle>
                     <DialogDescription>
-                        Tinjau dokumen dan perbarui status verifikasi mahasiswa.
+                        Tinjau dokumen dan perbarui status verifikasi untuk NIM: <strong>{dataItem?.nim}</strong>
                     </DialogDescription>
                 </DialogHeader>
 
                 {dataItem && (
-                    <div className="bg-muted/40 border p-4 rounded-lg grid grid-cols-2 gap-4 text-sm mb-2">
+                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="space-y-1">
-                            <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-wider">Identitas Mahasiswa</p>
-                            <p className="font-semibold text-base">{dataItem.full_name}</p>
-                            <p className="font-mono text-muted-foreground">{dataItem.nim}</p>
-                            <p className="text-xs">{dataItem.email}</p>
-                            <p className="text-xs">{dataItem.phone_number}</p>
+                            <p className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Data Diri</p>
+                            <p className="font-bold text-base text-slate-900">{dataItem.full_name}</p>
+                            <p className="font-mono text-slate-600">{dataItem.nim}</p>
+                            <p className="text-xs text-slate-600">{dataItem.email}</p>
+                            <p className="text-xs text-slate-600">{dataItem.phone_number}</p>
                         </div>
-                        <div className="space-y-1 text-right">
-                            <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-wider">Akademik</p>
-                            <p className="font-medium">{dataItem.major?.name}</p>
-                            <p className="text-xs text-muted-foreground">{dataItem.faculty?.name}</p>
-                            <p className="text-xs font-medium bg-indigo-100 text-indigo-700 inline-block px-2 py-0.5 rounded mt-1">
-                                {dataItem.degree_level} - Lulus {dataItem.graduation_year}
+                        <div className="space-y-1 md:text-right">
+                            <p className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Program Studi</p>
+                            <p className="font-medium text-slate-900">{dataItem.major?.name}</p>
+                            <p className="text-xs text-slate-600">{dataItem.faculty?.name}</p>
+                            <div className="flex flex-wrap md:justify-end gap-1 mt-1">
+                                <BadgeDegree level={dataItem.degree_level} />
+                                <span className="text-[10px] bg-white border px-2 py-0.5 rounded shadow-sm">
+                                    Lulus {dataItem.graduation_year}
+                                </span>
+                            </div>
+                            <p className="text-[10px] block mt-2 text-slate-500 italic">
+                                Keperluan: {dataItem.purpose}
                             </p>
-                            <p className="text-[10px] block mt-1 text-muted-foreground italic">Tujuan: {dataItem.purpose}</p>
                         </div>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6 pt-2">
-                    {/* Bagian Dokumen */}
+                    {/* Bagian Dokumen - Path disesuaikan dengan public storage Laravel */}
                     <div className="space-y-3">
-                        <Label className="text-sm font-bold">Dokumen Mahasiswa</Label>
-                        <div className="grid grid-cols-3 gap-3">
-                            <Button type="button" variant="outline" size="sm" className="h-20 flex-col gap-2 border-dashed hover:bg-red-50" asChild>
-                                <a href={`/storage/${dataItem?.scientific_paper_path}`} target="_blank" rel="noopener noreferrer">
-                                    <FileText className="h-5 w-5 text-red-500" />
-                                    <span className="text-[9px] uppercase font-bold text-center leading-tight">Karya Ilmiah<br />(PDF)</span>
-                                </a>
-                            </Button>
-                            <Button type="button" variant="outline" size="sm" className="h-20 flex-col gap-2 border-dashed hover:bg-blue-50" asChild>
-                                <a href={`/storage/${dataItem?.ktm_scan_path}`} target="_blank" rel="noopener noreferrer">
-                                    <User className="h-5 w-5 text-blue-500" />
-                                    <span className="text-[9px] uppercase font-bold text-center leading-tight">Scan KTM</span>
-                                </a>
-                            </Button>
+                        <Label className="text-sm font-bold text-slate-700">Lampiran Dokumen (Klik untuk lihat)</Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <DocumentButton
+                                href={`/storage/${dataItem?.scientific_paper_path}`}
+                                icon={<FileText className="h-5 w-5 text-red-500" />}
+                                label="Karya Ilmiah"
+                                subLabel="PDF"
+                            />
+                            <DocumentButton
+                                href={`/storage/${dataItem?.ktm_scan_path}`}
+                                icon={<User className="h-5 w-5 text-blue-500" />}
+                                label="Scan KTM"
+                                subLabel="IMG/PDF"
+                            />
                             {dataItem?.upload_proof_path ? (
-                                <Button type="button" variant="outline" size="sm" className="h-20 flex-col gap-2 border-dashed hover:bg-green-50" asChild>
-                                    <a href={`/storage/${dataItem.upload_proof_path}`} target="_blank" rel="noopener noreferrer">
-                                        <ExternalLink className="h-5 w-5 text-green-500" />
-                                        <span className="text-[9px] uppercase font-bold text-center leading-tight">Bukti Upload<br />Repository</span>
-                                    </a>
-                                </Button>
+                                <DocumentButton
+                                    href={`/storage/${dataItem.upload_proof_path}`}
+                                    icon={<ExternalLink className="h-5 w-5 text-emerald-500" />}
+                                    label="Bukti Upload"
+                                    subLabel="Repository"
+                                />
                             ) : (
-                                <div className="h-20 border border-dashed rounded-md flex flex-col items-center justify-center bg-muted/20 opacity-50">
-                                    <span className="text-[9px] uppercase font-bold text-muted-foreground">Tanpa Bukti</span>
+                                    <div className="h-20 border border-dashed rounded-md flex flex-col items-center justify-center bg-slate-50 opacity-60">
+                                        <span className="text-[9px] uppercase font-bold text-slate-400 text-center">Tidak Ada<br />Bukti Upload</span>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label htmlFor="status" className="font-bold">Status Verifikasi</Label>
+                            <Label htmlFor="status" className="font-bold text-slate-700">Status Verifikasi</Label>
                             <Select
                                 value={data.status}
-                                onValueChange={(val: any) => setData("status", val)}
+                                onValueChange={(val: unknown) => setData("status", val as LibraryFree['status'])}
                                 disabled={processing}
                             >
-                                <SelectTrigger id="status" className={
-                                    data.status === 'approved' ? "border-green-500 bg-green-50" :
-                                        data.status === 'rejected' ? "border-red-500 bg-red-50" : ""
-                                }>
+                                <SelectTrigger id="status" className={`h-11 ${data.status === 'approved' ? "border-emerald-500 bg-emerald-50 text-emerald-700" :
+                                    data.status === 'rejected' ? "border-red-500 bg-red-50 text-red-700" : "bg-white"
+                                    }`}>
                                     <SelectValue placeholder="Pilih Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="pending">
-                                        <span className="text-yellow-600">Menunggu (Pending)</span>
-                                    </SelectItem>
-                                    <SelectItem value="verifying">
-                                        <span>Dalam Verifikasi</span>
-                                    </SelectItem>
-                                    <SelectItem value="approved">
-                                        <span className="text-green-600 font-bold">Setujui (Approved)</span>
-                                    </SelectItem>
-                                    <SelectItem value="rejected">
-                                        <span className="text-red-600 font-bold">Tolak (Rejected)</span>
-                                    </SelectItem>
+                                    <SelectItem value="pending text-yellow-600">Menunggu (Pending)</SelectItem>
+                                    <SelectItem value="verifying">Dalam Verifikasi</SelectItem>
+                                    <SelectItem value="approved" className="text-emerald-600 font-semibold">Setujui (Approved)</SelectItem>
+                                    <SelectItem value="rejected" className="text-red-600 font-semibold">Tolak (Rejected)</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.status && <p className="text-[10px] font-bold text-destructive">{errors.status}</p>}
+                            {errors.status && <p className="text-xs font-bold text-red-500">{errors.status}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="similarity" className="font-bold">Skor Turnitin (%)</Label>
+                            <Label htmlFor="similarity" className="font-bold text-slate-700">Turnitin Score (%)</Label>
                             <div className="relative">
                                 <Input
                                     id="similarity"
                                     type="number"
                                     step="0.01"
-                                    placeholder="Contoh: 15.50"
+                                    min="0"
+                                    max="100"
+                                    className="h-11 pr-8"
+                                    placeholder="0.00"
                                     value={data.turnitin_similarity_score}
                                     onChange={(e) => setData("turnitin_similarity_score", e.target.value)}
                                     disabled={processing}
                                 />
-                                <span className="absolute right-3 top-2.5 text-muted-foreground text-sm">%</span>
+                                <span className="absolute right-3 top-3 text-slate-400 text-sm">%</span>
                             </div>
-                            {errors.turnitin_similarity_score && <p className="text-[10px] font-bold text-destructive">{errors.turnitin_similarity_score}</p>}
+                            {errors.turnitin_similarity_score && <p className="text-xs font-bold text-red-500">{errors.turnitin_similarity_score}</p>}
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="report_url" className="font-bold">URL Laporan Turnitin</Label>
+                        <Label htmlFor="report_url" className="font-bold text-slate-700">Link Laporan Turnitin</Label>
                         <Input
                             id="report_url"
                             type="url"
-                            placeholder="https://turnitin.com/newreport/..."
+                            className="h-11"
+                            placeholder="https://ev.turnitin.com/app/cata..."
                             value={data.turnitin_report_url}
                             onChange={(e) => setData("turnitin_report_url", e.target.value)}
                             disabled={processing}
                         />
-                        {errors.turnitin_report_url && <p className="text-[10px] font-bold text-destructive">{errors.turnitin_report_url}</p>}
+                        {errors.turnitin_report_url && <p className="text-xs font-bold text-red-500">{errors.turnitin_report_url}</p>}
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="admin_notes" className={`font-bold ${data.status === 'rejected' ? "text-red-600" : ""}`}>
-                            Catatan Admin {data.status === 'rejected' && "(Wajib mencantumkan alasan penolakan)"}
+                        <Label htmlFor="admin_notes" className={`font-bold ${data.status === 'rejected' ? "text-red-600" : "text-slate-700"}`}>
+                            Catatan Admin {data.status === 'rejected' && "(Wajib diisi jika ditolak)"}
                         </Label>
                         <Textarea
                             id="admin_notes"
-                            placeholder="Tulis alasan jika ditolak agar mahasiswa dapat memperbaiki dokumennya..."
-                            className="min-h-[100px]"
+                            placeholder={data.status === 'rejected' ? "Contoh: File PDF tidak bisa dibuka atau skor Turnitin terlalu tinggi..." : "Tambahkan catatan jika diperlukan..."}
+                            className={`min-h-25 bg-white ${data.status === 'rejected' ? "border-red-200 focus-visible:ring-red-500" : ""}`}
                             value={data.admin_notes}
                             onChange={(e) => setData("admin_notes", e.target.value)}
                             disabled={processing}
                         />
-                        {errors.admin_notes && <p className="text-[10px] font-bold text-destructive">{errors.admin_notes}</p>}
+                        {errors.admin_notes && <p className="text-xs font-bold text-red-500">{errors.admin_notes}</p>}
                     </div>
 
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={handleClose} disabled={processing}>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button type="button" variant="ghost" onClick={handleClose} disabled={processing}>
                             Batal
                         </Button>
-                        <Button type="submit" disabled={processing} className="bg-indigo-600 hover:bg-indigo-700 min-w-[150px]">
-                            {processing ? "Menyimpan..." : "Update & Beri Notifikasi"}
+                        <Button type="submit" disabled={processing} className="bg-indigo-600 hover:bg-indigo-700 px-8 h-11">
+                            {processing ? "Memproses..." : "Update Status Verifikasi"}
                         </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
+    );
+}
+
+// Sub-komponen untuk merapikan kode
+function BadgeDegree({ level }: { level: string }) {
+    return (
+        <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded shadow-sm">
+            {level}
+        </span>
+    );
+}
+
+function DocumentButton({ href, icon, label, subLabel }: { href: string; icon: React.ReactNode; label: string; subLabel: string }) {
+    return (
+        <Button type="button" variant="outline" size="sm" className="h-20 flex-col gap-1 border-slate-200 hover:bg-slate-50 transition-all hover:border-slate-400" asChild>
+            <a href={href} target="_blank" rel="noopener noreferrer">
+                {icon}
+                <span className="text-[10px] font-bold text-slate-700 leading-tight mt-1">{label}</span>
+                <span className="text-[8px] text-slate-400 uppercase tracking-tighter">{subLabel}</span>
+            </a>
+        </Button>
     );
 }

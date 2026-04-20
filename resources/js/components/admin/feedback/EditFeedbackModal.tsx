@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
+import { route } from "ziggy-js";
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -11,7 +12,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -19,8 +19,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { FeedbackRow } from "@/pages/admin/cms/Feedback"; // Pastikan path interface benar
-import { route } from "ziggy-js";
+import { Textarea } from '@/components/ui/textarea';
+import type { FeedbackRow } from "@/pages/admin/cms/Feedback"; // Pastikan path interface benar
 
 interface EditFeedbackModalProps {
     isOpen: boolean;
@@ -62,7 +62,7 @@ export default function EditFeedbackModal({ isOpen, onClose, feedback }: EditFee
         if (!feedback) return;
 
         // Gunakan put untuk update data teks
-        put(route('Cms.feedback.update', feedback.id), {
+        put(route('admin.feedback.update', feedback.id), {
             preserveScroll: true,
             onSuccess: () => handleClose(),
             onError: (err) => console.error("Update gagal:", err)

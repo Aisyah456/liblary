@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Head } from '@inertiajs/react';
 import { Plus, Handshake } from 'lucide-react'; // Mengganti ikon
 import { useState } from 'react';

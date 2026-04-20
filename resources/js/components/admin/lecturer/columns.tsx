@@ -27,7 +27,7 @@ export type Lecturer = {
 const handleDelete = (id: number) => {
     if (confirm("Apakah Anda yakin ingin menghapus data dosen ini?")) {
         // Sesuaikan route dengan backend Anda, misal: /lecturers/
-        router.delete(`/lecturers/${id}`, {
+        router.delete(`/admin/lecturers/${id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 // Berhasil dihapus

@@ -1,14 +1,14 @@
-import Footer from '@/components/home/Footer';
-import Navbar from '@/Components/home/Navbar';
 import { Head } from '@inertiajs/react';
-
 import {
-    BookOpen,
-    RefreshCcw,
     ArrowLeftRight,
+    BookOpen,
     Calendar,
-    ClipboardCheck
+    ClipboardCheck,
+    RefreshCcw
 } from 'lucide-react';
+import Footer from '@/components/home/Footer';
+import Navbar from '@/components/home/Navbar';
+
 
 export default function Circulation() {
     const circulationRules = [

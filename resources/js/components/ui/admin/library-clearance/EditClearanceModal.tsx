@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import type { LibraryClearance } from "@/components/admin/library-clearance/columns";

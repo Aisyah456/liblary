@@ -33,7 +33,7 @@ const AddShelfModal = ({ isOpen, onClose }: AddShelfModalProps) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        post("/shelves", {
+        post('/admin/shelves', {
             onSuccess: () => {
                 handleClose();
             },

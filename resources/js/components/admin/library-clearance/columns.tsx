@@ -32,7 +32,7 @@ export type Lecturer = {
 ===================== */
 const handleDelete = (id: number) => {
   if (confirm("Yakin ingin menghapus dosen ini?")) {
-    router.delete(`/lecturers/${id}`, { // Sesuaikan endpoint route Laravel-mu
+    router.delete(`/admin/library-clearances/${id}`, {
       preserveScroll: true,
     });
   }

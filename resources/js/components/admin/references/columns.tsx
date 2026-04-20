@@ -31,7 +31,7 @@ export type BookSuggestion = {
 ===================== */
 const handleDelete = (id: number) => {
   if (confirm("Apakah Anda yakin ingin menghapus usulan buku ini?")) {
-    router.delete(`/book-suggestions/${id}`, {
+    router.delete(`/admin/references/${id}`, {
       preserveScroll: true,
       onSuccess: () => {
         // Berhasil dihapus
@@ -170,3 +170,5 @@ export const columns = (
       },
     },
   ];
+
+export type ReferenceBook = BookSuggestion;

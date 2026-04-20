@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
-class HeroSectionController extends Controller
+class   HeroSectionController extends Controller
 {
     public function index()
     {
@@ -21,103 +21,72 @@ class HeroSectionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'badge_text' => 'required|string|max:255',
-            'title_line_1' => 'required|string|max:255',
+            'badge_text'      => 'required|string|max:255',
+            'title_line_1'    => 'required|string|max:255',
             'title_highlight' => 'required|string|max:255',
-            'subtitle' => 'required|string',
-            'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'stats_label' => 'nullable|string|max:255',
-            'stats_value' => 'nullable|string|max:255',
-            'is_active' => 'nullable|boolean',
+            'subtitle'        => 'required|string',
+            'stats_label'     => 'required|string|max:255',
+            'stats_value'     => 'required|string|max:255',
+            'image'           => 'required|image|mimes:jpeg,png,jpg,webp|max:2048', // Validasi file
+            'is_active'       => 'boolean',
         ]);
 
-        DB::beginTransaction();
 
-        try {
-            // upload image
-            if ($request->hasFile('image')) {
-                $validated['image_path'] = $request->file('image')->store('hero-banners', 'public');
-            }
+        if ($request->hasFile('image')) {
 
-            // default boolean
-            $validated['is_active'] = $request->boolean('is_active');
-
-            // hapus field image
-            unset($validated['image']);
-
-            HeroSection::create($validated);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Banner berhasil ditambahkan');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return redirect()->back()->with('error', 'Gagal menambahkan banner');
+            $path = $request->file('image')->store('heroes', 'public');
+            $validated['image_path'] = $path;
         }
+
+        HeroSection::create($validated);
+
+        return redirect()->back()->with('success', 'Banner berhasil ditambahkan!');
     }
 
-    public function update(Request $request, HeroSection $heroSection)
+    /**
+     * Update data Hero (Termasuk ganti gambar)
+     */
+    public function update(Request $request, HeroSection $hero)
     {
+
         $validated = $request->validate([
-            'badge_text' => 'required|string|max:255',
-            'title_line_1' => 'required|string|max:255',
+            'badge_text'      => 'required|string|max:255',
+            'title_line_1'    => 'required|string|max:255',
             'title_highlight' => 'required|string|max:255',
-            'subtitle' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'stats_label' => 'nullable|string|max:255',
-            'stats_value' => 'nullable|string|max:255',
-            'is_active' => 'nullable|boolean',
+            'subtitle'        => 'required|string',
+            'stats_label'     => 'required|string|max:255',
+            'stats_value'     => 'required|string|max:255',
+            'image'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'is_active'       => 'boolean',
         ]);
 
-        DB::beginTransaction();
-
-        try {
-            // upload image baru
-            if ($request->hasFile('image')) {
-                // hapus lama
-                if ($heroSection->image_path) {
-                    Storage::disk('public')->delete($heroSection->image_path);
-                }
-
-                $validated['image_path'] = $request->file('image')->store('hero-banners', 'public');
+        if ($request->hasFile('image')) {
+            // Hapus gambar lama jika ada
+            if ($hero->image_path) {
+                Storage::disk('public')->delete($hero->image_path);
             }
 
-            // handle boolean
-            $validated['is_active'] = $request->boolean('is_active');
-
-            unset($validated['image']);
-
-            $heroSection->update($validated);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Banner berhasil diperbarui');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return redirect()->back()->with('error', 'Gagal update banner');
+            // Simpan gambar baru
+            $path = $request->file('image')->store('heroes', 'public');
+            $validated['image_path'] = $path;
         }
+
+        $hero->update($validated);
+
+        return redirect()->back()->with('success', 'Banner berhasil diperbarui!');
     }
 
-    public function destroy(HeroSection $heroSection)
+    /**
+     * Hapus data Hero
+     */
+    public function destroy(HeroSection $hero)
     {
-        DB::beginTransaction();
-
-        try {
-            if ($heroSection->image_path) {
-                Storage::disk('public')->delete($heroSection->image_path);
-            }
-
-            $heroSection->delete();
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Banner berhasil dihapus');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return redirect()->back()->with('error', 'Gagal menghapus banner');
+        if ($hero->image_path) {
+            Storage::disk('public')->delete($hero->image_path);
         }
+
+        $hero->delete();
+
+        return redirect()->back()->with('success', 'Banner berhasil dihapus!');
     }
 }

@@ -60,6 +60,8 @@ class ReferenceServiceController extends Controller
      */
     public function destroy(ReferenceService $referenceService)
     {
-        //
+        $referenceService->delete();
+
+        return redirect()->back()->with('success', 'Pengajuan layanan referensi dihapus.');
     }
 }

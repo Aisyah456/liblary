@@ -1,52 +1,41 @@
 import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { route } from 'ziggy-js';
 import AddMembershipModal from '@/components/admin/membership/AddMembershipModal';
 import { columns as MembershipColumns } from "@/components/admin/membership/columns";
+import type { Membership as MembershipRow } from "@/components/admin/membership/columns";
 import { DataTable } from '@/components/admin/membership/data-table';
 import EditMembershipModal from '@/components/admin/membership/EditmembershipModal';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import membershipRoute from "@/routes/memberships";
 
-
+// Breadcrumbs sudah benar menggunakan helper route()
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Keanggotaan',
-        href: membershipRoute.index().url,
+        href: route('admin.memberships.index'),
     },
 ];
 
-export interface Membership {
-    id: number;
-    library_card_number: string;
-    status: 'Aktif' | 'Nonaktif';
-    joined_at: string;
-    expires_at: string | null;
-    memberable_type: string;
-    memberable: {
-        nama_lengkap?: string;
-        user?: { name: string };
-        nim?: string;
-        nidn?: string;
-    };
-}
+export type Membership = MembershipRow;
 
 interface Props {
     memberships: Membership[];
 }
 
 export default function MembershipsIndex({ memberships }: Props) {
+    // Gunakan state untuk data lokal jika Anda ingin update UI instan (optimistic update)
     const [data, setData] = useState<Membership[]>(memberships);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null);
 
-    // Sinkronisasi data saat props dari server berubah
+    // Sinkronisasi data saat props dari server berubah (misal setelah refresh/onSuccess)
     useEffect(() => {
         setData(memberships);
     }, [memberships]);
 
-    const handleUpdate = (updatedMembership: Membership) => {
+    const handleUpdate = (updatedMembership: Membership) => {/
         setData((prev) =>
             prev.map((item) =>
                 item.id === updatedMembership.id ? updatedMembership : item
@@ -80,23 +69,23 @@ export default function MembershipsIndex({ memberships }: Props) {
 
                 {/* Ringkasan Status Anggota */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="p-4 bg-card border rounded-xl shadow-sm">
+                    <div className="p-4 bg-white border rounded-xl shadow-sm">
                         <p className="text-xs font-medium text-muted-foreground uppercase">Total Anggota</p>
                         <p className="text-2xl font-bold">{data.length}</p>
                     </div>
-                    <div className="p-4 bg-card border rounded-xl shadow-sm">
+                    <div className="p-4 bg-white border rounded-xl shadow-sm">
                         <p className="text-xs font-medium text-green-600 uppercase">Aktif</p>
                         <p className="text-2xl font-bold text-green-600">
                             {data.filter(m => m.status === 'Aktif').length}
                         </p>
                     </div>
-                    <div className="p-4 bg-card border rounded-xl shadow-sm">
-                        <p className="text-xs font-medium text-destructive uppercase">Nonaktif</p>
-                        <p className="text-2xl font-bold text-destructive">
+                    <div className="p-4 bg-white border rounded-xl shadow-sm">
+                        <p className="text-xs font-medium text-red-600 uppercase">Nonaktif</p>
+                        <p className="text-2xl font-bold text-red-600">
                             {data.filter(m => m.status === 'Nonaktif').length}
                         </p>
                     </div>
-                    <div className="p-4 bg-card border rounded-xl shadow-sm">
+                    <div className="p-4 bg-white border rounded-xl shadow-sm">
                         <p className="text-xs font-medium text-amber-600 uppercase">Kadaluwarsa</p>
                         <p className="text-2xl font-bold text-amber-600">
                             {data.filter(m => m.expires_at && new Date(m.expires_at) < new Date()).length}
@@ -104,24 +93,26 @@ export default function MembershipsIndex({ memberships }: Props) {
                     </div>
                 </div>
 
-                <div className="bg-card rounded-xl border shadow-sm p-4">
+                <div className="bg-white rounded-xl border shadow-sm p-4 overflow-hidden">
                     <DataTable
-                        // Memanggil fungsi columns yang diimport dengan argumen yang dibutuhkan
                         columns={MembershipColumns(setEditModalOpen, setSelectedMembership)}
                         data={data}
                     />
                 </div>
             </div>
 
-            <EditMembershipModal
-                isOpen={editModalOpen}
-                onClose={() => {
-                    setEditModalOpen(false);
-                    setSelectedMembership(null);
-                }}
-                membership={selectedMembership}
-                onUpdate={handleUpdate}
-            />
+            {/* Modal Edit diletakkan di luar div utama agar tidak terkena overflow */}
+            {selectedMembership && (
+                <EditMembershipModal
+                    isOpen={editModalOpen}
+                    onClose={() => {
+                        setEditModalOpen(false);
+                        setSelectedMembership(null);
+                    }}
+                    membership={selectedMembership}
+                    onUpdate={handleUpdate}
+                />
+            )}
 
             <AddMembershipModal
                 isOpen={isAddModalOpen}

@@ -1,9 +1,3 @@
-{
-    service.features && (
-        <FeatureList>
-            {service.features.map((feature, index) => (
-                <li key={index}>{feature}</li>
-            ))}
-        </FeatureList>
-    );
+export default function Features() {
+    return null;
 }

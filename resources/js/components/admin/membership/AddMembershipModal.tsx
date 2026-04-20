@@ -42,7 +42,7 @@ export default function AddMembershipModal({ isOpen, onClose }: { isOpen: boolea
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.post("/memberships", formData, {
+        router.post('/admin/memberships', formData, {
             onSuccess: () => {
                 onClose();
                 setFormData({

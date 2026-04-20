@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react'; // Tambahkan useEffect
 import { useForm } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -13,57 +13,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import NewsRoute from '@/routes/news';
-import { NewsRow } from './columns'; // Pastikan import type ini ada
 
-interface EditNewsModalProps {
+interface AddNewsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    news: NewsRow | null; // Tambahkan news ke props
 }
 
-// Helper untuk format tanggal agar sesuai dengan input datetime-local
-function formatDateTime(dateStr: string | null) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const offset = date.getTimezoneOffset() * 60000;
-    const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16);
-    return localISOTime;
+function formatDateTimeLocal(d: Date) {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function EditNewsModal({ isOpen, onClose, news }: EditNewsModalProps) {
+export default function AddNewsModal({ isOpen, onClose }: AddNewsModalProps) {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
-        _method: 'put', // Laravel spoofing untuk update dengan file
         title: '',
         category: '',
         excerpt: '',
         body: '',
-        thumbnail: null as File | string | null,
-        published_at: '',
+        thumbnail: null as File | null,
+        published_at: formatDateTimeLocal(new Date()),
         is_published: false,
         is_featured: false,
     });
 
-    // Sinkronisasi data saat modal dibuka atau news berubah
-    useEffect(() => {
-        if (isOpen && news) {
-            setData({
-                _method: 'put',
-                title: news.title ?? '',
-                category: news.category ?? '',
-                excerpt: news.excerpt ?? '',
-                body: news.body ?? '',
-                thumbnail: news.thumbnail, // Tetap string jika tidak diubah
-                published_at: formatDateTime(news.published_at),
-                is_published: !!news.is_published,
-                is_featured: !!news.is_featured,
-            });
-        }
-    }, [isOpen, news]);
-
     const handleClose = () => {
         onClose();
-        // Reset form setelah transisi tutup selesai agar tidak terlihat "berkedip"
         setTimeout(() => {
             reset();
             clearErrors();
@@ -72,10 +46,7 @@ export default function EditNewsModal({ isOpen, onClose, news }: EditNewsModalPr
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!news) return;
-
-        // Gunakan post dengan _method put karena mengirim File
-        post((NewsRoute as any).update.url(news.id), {
+        post(route('admin.news.store'), {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => handleClose(),
@@ -86,29 +57,26 @@ export default function EditNewsModal({ isOpen, onClose, news }: EditNewsModalPr
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
             <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Edit Berita</DialogTitle>
-                    <DialogDescription>
-                        Ubah detail berita di bawah ini. Slug akan diperbarui jika judul diubah.
-                    </DialogDescription>
+                    <DialogTitle>Tambah Berita</DialogTitle>
+                    <DialogDescription>Buat entri berita baru untuk halaman publik.</DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="title">Judul *</Label>
+                        <Label htmlFor="add-title">Judul *</Label>
                         <Input
-                            id="title"
+                            id="add-title"
                             value={data.title}
                             onChange={(e) => setData('title', e.target.value)}
-                            placeholder="Judul berita"
                             required
                         />
                         {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="category">Kategori</Label>
+                        <Label htmlFor="add-category">Kategori</Label>
                         <Input
-                            id="category"
+                            id="add-category"
                             value={data.category}
                             onChange={(e) => setData('category', e.target.value)}
                             placeholder="Contoh: Pengumuman"
@@ -116,20 +84,19 @@ export default function EditNewsModal({ isOpen, onClose, news }: EditNewsModalPr
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="excerpt">Ringkasan (excerpt)</Label>
+                        <Label htmlFor="add-excerpt">Ringkasan</Label>
                         <Textarea
-                            id="excerpt"
+                            id="add-excerpt"
                             value={data.excerpt}
                             onChange={(e) => setData('excerpt', e.target.value)}
-                            placeholder="Teks singkat..."
                             rows={2}
                         />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="body">Isi Berita *</Label>
+                        <Label htmlFor="add-body">Isi *</Label>
                         <Textarea
-                            id="body"
+                            id="add-body"
                             value={data.body}
                             onChange={(e) => setData('body', e.target.value)}
                             rows={6}
@@ -139,55 +106,51 @@ export default function EditNewsModal({ isOpen, onClose, news }: EditNewsModalPr
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="thumbnail">Upload Gambar Baru (Opsional)</Label>
-                        {typeof data.thumbnail === 'string' && data.thumbnail && (
-                            <p className="text-[10px] text-muted-foreground">File saat ini: {data.thumbnail.split('/').pop()}</p>
-                        )}
+                        <Label htmlFor="add-thumb">Gambar (opsional)</Label>
                         <Input
-                            id="thumbnail"
+                            id="add-thumb"
                             type="file"
                             accept="image/*"
-                            onChange={(e) => setData('thumbnail', e.target.files ? e.target.files[0] : null)}
-                            className="cursor-pointer"
+                            onChange={(e) => setData('thumbnail', e.target.files?.[0] ?? null)}
                         />
                         {errors.thumbnail && <p className="text-xs text-destructive">{errors.thumbnail}</p>}
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="published_at">Tanggal Publikasi</Label>
+                        <Label htmlFor="add-published">Tanggal publikasi</Label>
                         <Input
-                            id="published_at"
+                            id="add-published"
                             type="datetime-local"
                             value={data.published_at}
                             onChange={(e) => setData('published_at', e.target.value)}
                         />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-6">
+                    <div className="flex flex-wrap gap-6">
                         <div className="flex items-center gap-2">
                             <Switch
-                                id="is_published"
+                                id="add-published-sw"
                                 checked={data.is_published}
                                 onCheckedChange={(v) => setData('is_published', v)}
                             />
-                            <Label htmlFor="is_published">Publikasikan</Label>
+                            <Label htmlFor="add-published-sw">Publikasikan</Label>
                         </div>
                         <div className="flex items-center gap-2">
                             <Switch
-                                id="is_featured"
+                                id="add-featured"
                                 checked={data.is_featured}
                                 onCheckedChange={(v) => setData('is_featured', v)}
                             />
-                            <Label htmlFor="is_featured">Unggulan</Label>
+                            <Label htmlFor="add-featured">Unggulan</Label>
                         </div>
                     </div>
 
-                    <DialogFooter className="pt-4 gap-2">
+                    <DialogFooter className="gap-2 pt-4">
                         <Button type="button" variant="outline" onClick={handleClose} disabled={processing}>
                             Batal
                         </Button>
                         <Button type="submit" disabled={processing}>
-                            {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                            {processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </DialogFooter>
                 </form>

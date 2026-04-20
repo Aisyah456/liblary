@@ -318,7 +318,7 @@ export default function LibraryFreeForm({ faculties, majors }: Props) {
                                                 {data.scientific_paper_path && (
                                                     <div className="mt-4 px-4 py-2 bg-white rounded-xl border border-emerald-200 flex items-center gap-3 shadow-sm">
                                                         <CheckCircle2 size={16} className="text-emerald-500" />
-                                                        <span className="text-xs font-semibold text-emerald-700 truncate max-w-[300px]">
+                                                        <span className="text-xs font-semibold text-emerald-700 truncate max-w-75">
                                                             {data.scientific_paper_path.name}
                                                         </span>
                                                     </div>

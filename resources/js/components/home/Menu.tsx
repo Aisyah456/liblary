@@ -18,6 +18,8 @@ const iconMap = {
     list: <ClipboardList size={32} color="#0ea5e9" />,
 };
 
+type IconKey = keyof typeof iconMap;
+
 export default function Services({ services }:any) {
     
     const displayServices = services && services.length > 0 ? services : [
@@ -48,7 +50,7 @@ export default function Services({ services }:any) {
                         >
                             <div className="card-header">
                                 <div className="icon-wrapper">
-                                    {iconMap[service.icon] || <HelpCircle size={32} color="#0ea5e9" />}
+                                    {iconMap[service.icon as IconKey] || <HelpCircle size={32} color="#0ea5e9" />}
                                 </div>
                                 {/* Angka 3 (stats-number) sudah dihapus dari sini */}
                                 <h3>{service.title}</h3>

@@ -40,7 +40,7 @@ export type Borrowing = {
 
 const handleDelete = (id: number) => {
   if (confirm("Hapus data peminjaman ini? Tindakan ini tidak dapat dibatalkan.")) {
-    router.delete(`/borrowings/${id}`, {
+    router.delete(`/admin/borrowings/${id}`, {
       preserveScroll: true,
     });
   }

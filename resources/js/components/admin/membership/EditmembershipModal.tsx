@@ -56,7 +56,7 @@ export default function EditMembershipModal({
 
         setLoading(true);
 
-        router.put(`/memberships/${membership.id}`, formData, {
+        router.put(`/admin/memberships/${membership.id}`, formData, {
             preserveScroll: true,
             onSuccess: () => {
                 const updatedData = { ...membership, ...formData };

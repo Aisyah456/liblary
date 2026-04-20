@@ -47,7 +47,7 @@ const dummyNews = [
 ];
 
 export default function Projects() {
-    const [projects, setProjects] = useState([]);
+    const [projects, setProjects] = useState<typeof dummyNews>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

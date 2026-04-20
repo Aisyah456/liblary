@@ -1,4 +1,3 @@
-import React from "react";
 import { useForm } from "@inertiajs/react";
 import {
     FileUp,
@@ -8,11 +7,12 @@ import {
     BookText,
     X
 } from "lucide-react";
+import React from "react";
+import { route } from "ziggy-js";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
     DialogTitle,
     DialogDescription
 } from "@/components/ui/dialog";
@@ -51,7 +51,7 @@ export default function AddSubmissionModal({
         title: "",
         document_type: "",
         academic_year: new Date().getFullYear().toString(),
-        file_path: null as File | null,
+        file: null as File | null,
     });
 
     const filteredMajors = majors.filter(
@@ -60,13 +60,13 @@ export default function AddSubmissionModal({
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setData("file_path", e.target.files[0]);
+            setData("file", e.target.files[0]);
         }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('submissions.store'), {
+        post(route('admin.turnitin.submissions.store'), {
             onSuccess: () => {
                 onClose();
                 reset();
@@ -258,30 +258,30 @@ export default function AddSubmissionModal({
                                         <input
                                             type="file"
                                             className="hidden"
-                                            id="file_path_modal"
+                                            id="file_modal"
                                             disabled={processing}
                                             accept=".pdf,.doc,.docx"
                                             onChange={handleFileChange}
                                         />
                                         <label
-                                            htmlFor="file_path_modal"
-                                            className={`flex flex-col items-center justify-center w-full min-h-[160px] border-2 border-dashed rounded-[2rem] cursor-pointer transition-all ${data.file_path
+                                            htmlFor="file_modal"
+                                            className={`flex flex-col items-center justify-center w-full min-h-[160px] border-2 border-dashed rounded-[2rem] cursor-pointer transition-all ${data.file
                                                 ? 'border-teal-500 bg-teal-50/30'
                                                 : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-teal-400'
                                                 } ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <div className="flex flex-col items-center text-center p-6">
-                                                <div className={`p-3 rounded-full mb-3 ${data.file_path ? 'bg-teal-100 text-teal-600' : 'bg-white text-slate-400 shadow-sm'}`}>
+                                                <div className={`p-3 rounded-full mb-3 ${data.file ? 'bg-teal-100 text-teal-600' : 'bg-white text-slate-400 shadow-sm'}`}>
                                                     <FileUp size={24} />
                                                 </div>
                                                 <p className="text-sm font-bold text-slate-700">
-                                                    {data.file_path ? data.file_path.name : 'Klik untuk pilih file'}
+                                                    {data.file ? data.file.name : 'Klik untuk pilih file'}
                                                 </p>
                                                 <p className="text-xs text-slate-400 mt-1">PDF, DOC, atau DOCX (Max. 10MB)</p>
                                             </div>
                                         </label>
                                     </div>
-                                    {errors.file_path && <p className="text-xs text-rose-500 mt-2">{errors.file_path}</p>}
+                                    {errors.file && <p className="text-xs text-rose-500 mt-2">{errors.file}</p>}
                                 </div>
                             </div>
                         </div>

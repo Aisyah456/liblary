@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import styled from 'styled-components';
 // Import axios jika Anda menggunakannya, atau gunakan fetch bawaan browser

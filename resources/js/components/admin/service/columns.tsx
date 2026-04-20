@@ -27,7 +27,7 @@ export type ReferenceService = {
 
 const handleDelete = (id: number) => {
   if (confirm("Yakin ingin menghapus pengajuan layanan referensi ini?")) {
-    router.delete(`/reference-services/${id}`, {
+    router.delete(`/admin/reference-services/${id}`, {
       preserveScroll: true,
     });
   }

@@ -45,6 +45,7 @@ import { dashboard } from "@/routes"
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { url } = usePage()
   const { props: pageProps } = usePage()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const user = (pageProps as any)?.auth?.user || (pageProps as any)?.user || null
   const { setOpen } = useSidebar()
 
@@ -72,7 +73,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "#",
           icon: ImageIcon,
           items: [
-            { title: "Banner / Slider", url: '/cms/hero' },
+            { title: "Banner / Slider", url: '/admin/hero' },
             { title: "Profil Perpustakaan", url: '/admin/profile' },
             { title: "Fasilitas & Layanan", url: '/admin/services' },
             { title: "Testimoni Pustaka", url: '/admin/feedback' },
@@ -155,8 +156,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "#",
           icon: FileText,
           items: [
-            { title: "Validasi Turnitin", url: '/admin/turnitin' },
-            { title: "Bebas Pustaka", url: '#' },
+            { title: "Validasi Turnitin", url: '/admin/turnitin/process' },
+            { title: "Bebas Pustaka", url: '/admin/bebas-pustaka' },
             { title: "Usulan Buku Baru", url: '#' },
           ],
         },
@@ -177,9 +178,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "#",
           icon: UserCheck,
           items: [
-            { title: "Data Mahasiswa", url: '#' },
-            { title: "Data Dosen", url: '#' },
-            { title: "Staf Universitas", url: '#' },
+            { title: "Data Mahasiswa", url: '/admin/student' },
+            { title: "Data Dosen", url: '/admin/lecturers' },
+            { title: "Staf Universitas", url: '/admin/staff' },
             { title: "Anggota Luar", url: '#' },
           ],
         },
@@ -192,10 +193,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ]
 
-  const isUrlActive = (menuUrl: string, items?: any[]) => {
+  const isUrlActive = (menuUrl: string, items?: unknown[]) => {
     if (url === menuUrl) return true
     if (items) {
-      return items.some(item => url.startsWith(item.url) && item.url !== '#')
+      return items.some(item => url.startsWith(
+        .url) && item.url !== '#')
     }
     return url.startsWith(menuUrl) && menuUrl !== '#'
   }

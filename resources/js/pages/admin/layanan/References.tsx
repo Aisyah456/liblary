@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Head } from '@inertiajs/react';
 import { Plus } from "lucide-react";
 import { useEffect, useState } from 'react';

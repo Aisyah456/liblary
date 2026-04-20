@@ -50,7 +50,7 @@ export default function EditBorrowingModal({
         if (!borrowing) return;
 
         setLoading(true);
-        router.put(`/borrowings/${borrowing.id}`, formData, {
+        router.put(`/admin/borrowings/${borrowing.id}`, formData, {
             preserveScroll: true,
             onSuccess: () => {
                 onClose();

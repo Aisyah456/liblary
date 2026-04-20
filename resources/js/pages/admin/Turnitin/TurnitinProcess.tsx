@@ -55,7 +55,7 @@ const BREADCRUMBS = [{ title: 'Turnitin Process', href: '#' }];
 
 export default function TurnitinProcess({ submissions = [], faculties }: Props) {
     const [data, setData] = useState<TurnitinSubmission[]>(submissions);
-    const [selectedSubmission, setSelectedSubmission] = useState<TurnitinSubmission | null>(null);
+    const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
     const [processModalOpen, setProcessModalOpen] = useState(false);
     const [addModalOpen, setAddModalOpen] = useState(false);
 
@@ -125,10 +125,8 @@ export default function TurnitinProcess({ submissions = [], faculties }: Props) 
                     <main className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
                         <div className="p-4">
                             <DataTable
-                                /* PERBAIKAN DI SINI: Mengirimkan dua setter sesuai kebutuhan columns.tsx */
-                                columns={columns(setProcessModalOpen, setSelectedSubmission)}
+                                columns={columns(setProcessModalOpen, setSelectedSubmission as (submission: any) => void)}
                                 data={data}
-                                searchKey="full_name"
                             />
                         </div>
                     </main>

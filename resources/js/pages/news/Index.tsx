@@ -1,6 +1,6 @@
-import Footer from '@/components/home/Footer';
-import Navbar from '@/Components/home/Navbar';
 import { Head, Link } from '@inertiajs/react';
+import Footer from '@/components/home/Footer';
+import Navbar from '@/components/home/Navbar';
 
 export interface NewsItem {
     id: number;
@@ -47,7 +47,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 export default function NewsIndex({ news }: Props) {
-    const { data: items, links, current_page, last_page } = news;
+    const { data: items, links, last_page } = news;
 
     return (
         <>
@@ -134,7 +134,7 @@ export default function NewsIndex({ news }: Props) {
                                                 {link.url ? (
                                                     <Link
                                                         href={link.url}
-                                                        className={`inline-flex items-center justify-center min-w-[2.75rem] h-[2.75rem] text-sm font-bold rounded-xl border transition-all ${link.active
+                                                        className={`inline-flex items-center justify-center min-w-11 h-11 text-sm font-bold rounded-xl border transition-all ${link.active
                                                                 ? 'border-indigo-600 bg-indigo-600 text-white shadow-lg shadow-indigo-200'
                                                                 : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-600'
                                                             }`}
@@ -143,7 +143,7 @@ export default function NewsIndex({ news }: Props) {
                                                     </Link>
                                                 ) : (
                                                     <span
-                                                        className="inline-flex min-w-[2.75rem] h-[2.75rem] items-center justify-center text-sm text-slate-300"
+                                                            className="inline-flex min-w-11 h-11 items-center justify-center text-sm text-slate-300"
                                                         dangerouslySetInnerHTML={{ __html: link.label }}
                                                     />
                                                 )}

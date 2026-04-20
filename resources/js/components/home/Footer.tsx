@@ -124,7 +124,7 @@ export default function Footer() {
             <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.8174567389406!2d106.87220237380343!3d-6.287709293701238!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f298bb8709a9%3A0x65e3a53691bd58a0!2sUniversitas%20MH%20Thamrin!5e0!3m2!1sid!2sid!4v1774840346729!5m2!1sid!2sid"
                 className="absolute inset-0 h-full w-full border-0"
-                allowFullScreen=""
+                allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Lokasi Universitas MH Thamrin"

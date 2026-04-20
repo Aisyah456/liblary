@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
+import { route } from 'ziggy-js';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -13,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import NewsRoute from '@/routes/news';
 import type { NewsRow } from './columns';
 
 interface EditNewsModalProps {
@@ -33,7 +33,6 @@ function formatDateTimeForInput(dateStr: string | null): string {
 
 export default function EditNewsModal({ isOpen, onClose, news }: EditNewsModalProps) {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
-        _method: 'put', // Method spoofing untuk Laravel
         title: '',
         category: '',
         excerpt: '',
@@ -47,7 +46,6 @@ export default function EditNewsModal({ isOpen, onClose, news }: EditNewsModalPr
     useEffect(() => {
         if (isOpen && news) {
             setData({
-                _method: 'put',
                 title: news.title ?? '',
                 category: news.category ?? '',
                 excerpt: news.excerpt ?? '',
@@ -72,7 +70,7 @@ export default function EditNewsModal({ isOpen, onClose, news }: EditNewsModalPr
         e.preventDefault();
         if (!news) return;
 
-        post(NewsRoute.update(news.id), {
+        post(route('admin.news.update.post', news.id), {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => handleClose(),

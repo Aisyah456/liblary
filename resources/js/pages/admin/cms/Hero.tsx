@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/admin/services/data-table';
+import { DataTable } from '@/components/admin/hero/data-table';
 import { columns } from '@/components/admin/hero/columns';
 import AddHeroModal from '@/components/admin/hero/AddHeroModal';
 import EditHeroModal from '@/components/admin/hero/EditHeroModal';

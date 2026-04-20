@@ -1,6 +1,6 @@
 import { router } from "@inertiajs/react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, MapPin, Hash, Info } from "lucide-react";
+import { MoreHorizontal, MapPin, Hash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -25,7 +25,7 @@ export type Shelf = {
 
 const handleDelete = (id: number) => {
   if (confirm("Yakin ingin menghapus rak ini? Rak hanya bisa dihapus jika kosong.")) {
-    router.delete(`/shelves/${id}`, {
+    router.delete(`/admin/shelves/${id}`, {
       preserveScroll: true,
     });
   }

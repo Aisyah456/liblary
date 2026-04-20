@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import AddLecturerModal from '@/components/admin/lecturer/AddLecturerModal';

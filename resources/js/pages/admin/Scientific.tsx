@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 

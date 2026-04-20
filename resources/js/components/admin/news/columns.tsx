@@ -1,9 +1,9 @@
 import { router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, ExternalLink } from 'lucide-react';
+import { route } from 'ziggy-js';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import NewsRoute from '@/routes/news'; // Gunakan NewsRoute konsisten
 
 export type NewsRow = {
     id: number;
@@ -20,8 +20,7 @@ export type NewsRow = {
 
 const handleDelete = (id: number) => {
     if (confirm('Apakah Anda yakin ingin menghapus berita ini?')) {
-        // Gunakan NewsRoute agar konsisten dengan file modal
-        router.delete(NewsRoute.show.url(id), {
+        router.delete(route('admin.news.destroy', id), {
             preserveScroll: true,
         });
     }

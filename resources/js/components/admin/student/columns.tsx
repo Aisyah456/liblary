@@ -30,7 +30,7 @@ export type Student = {
 ===================== */
 const handleDelete = (id: number) => {
   if (confirm("Apakah Anda yakin ingin menghapus mahasiswa ini?")) {
-    router.delete(`/student/${id}`, {
+    router.delete(`/admin/student/${id}`, {
       preserveScroll: true,
       onSuccess: () => {
         // Berhasil dihapus, Inertia otomatis refresh data

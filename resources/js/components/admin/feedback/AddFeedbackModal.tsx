@@ -43,7 +43,7 @@ export default function AddFeedbackModal({ isOpen, onClose }: AddFeedbackModalPr
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Ganti ke rute feedback (contoh: admin.feedback.store)
-        post(route('Cms.feedback.store'), {
+        post(route('admin.feedback.store'), {
             preserveScroll: true,
             onSuccess: () => handleClose(),
         });

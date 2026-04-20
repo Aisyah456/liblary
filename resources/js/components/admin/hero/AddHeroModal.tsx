@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { route } from "ziggy-js";
+import React from 'react';
 
 interface AddHeroModalProps {
     isOpen: boolean;
@@ -26,7 +27,7 @@ export default function AddHeroModal({ isOpen, onClose }: AddHeroModalProps) {
         title_line_1: 'Eksplorasi Dunia',
         title_highlight: 'Tanpa Batas.',
         subtitle: '',
-        image: null as File | null, // Untuk upload image_path
+        image: null as File | null, // Key 'image' akan diproses controller menjadi 'image_path'
         stats_label: 'Koleksi',
         stats_value: '50k+',
         is_active: true,
@@ -40,9 +41,10 @@ export default function AddHeroModal({ isOpen, onClose }: AddHeroModalProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Menggunakan rute hero (sesuaikan dengan rute Laravel Anda)
-        post(route('Hero.update'), {
-            forceFormData: true,
+
+        // Gunakan rute .store karena ini adalah modal TAMBAH data baru
+        post(route('admin.hero.store'), {
+            forceFormData: true, 
             preserveScroll: true,
             onSuccess: () => handleClose(),
         });
@@ -50,31 +52,31 @@ export default function AddHeroModal({ isOpen, onClose }: AddHeroModalProps) {
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-160 max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Tambah Banner Hero</DialogTitle>
+                    <DialogTitle>Tambah Banner Hero Baru</DialogTitle>
                     <DialogDescription>
-                        Konfigurasi tampilan utama (banner) halaman depan perpustakaan.
+                        Konten ini akan muncul di bagian paling atas (Jumbotron) halaman utama.
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+                <form onSubmit={handleSubmit} className="grid gap-5 py-4">
                     {/* Badge Text */}
                     <div className="grid gap-2">
-                        <Label htmlFor="badge_text">Teks Badge (Label Kecil)</Label>
+                        <Label htmlFor="badge_text" className="font-semibold">Teks Badge (Label Kecil)</Label>
                         <Input
                             id="badge_text"
                             value={data.badge_text}
                             onChange={(e) => setData('badge_text', e.target.value)}
-                            placeholder="Contoh: Terakreditasi A"
+                            placeholder="Contoh: Perpustakaan Unggul Terakreditasi A"
                         />
                         {errors.badge_text && <p className="text-xs text-destructive">{errors.badge_text}</p>}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Title Line 1 */}
                         <div className="grid gap-2">
-                            <Label htmlFor="title_line_1">Judul Utama</Label>
+                            <Label htmlFor="title_line_1" className="font-semibold">Judul Baris 1</Label>
                             <Input
                                 id="title_line_1"
                                 value={data.title_line_1}
@@ -85,7 +87,7 @@ export default function AddHeroModal({ isOpen, onClose }: AddHeroModalProps) {
                         </div>
                         {/* Title Highlight */}
                         <div className="grid gap-2">
-                            <Label htmlFor="title_highlight">Judul Highlight (Warna Berbeda)</Label>
+                            <Label htmlFor="title_highlight" className="font-semibold">Judul Highlight</Label>
                             <Input
                                 id="title_highlight"
                                 value={data.title_highlight}
@@ -98,70 +100,84 @@ export default function AddHeroModal({ isOpen, onClose }: AddHeroModalProps) {
 
                     {/* Subtitle */}
                     <div className="grid gap-2">
-                        <Label htmlFor="subtitle">Sub-Judul / Deskripsi *</Label>
+                        <Label htmlFor="subtitle" className="font-semibold">Subtitle / Deskripsi</Label>
                         <Textarea
                             id="subtitle"
                             value={data.subtitle}
                             onChange={(e) => setData('subtitle', e.target.value)}
-                            placeholder="Tuliskan deskripsi singkat banner..."
+                            placeholder="Tuliskan pesan singkat yang menarik di bawah judul utama..."
                             rows={3}
                         />
                         {errors.subtitle && <p className="text-xs text-destructive">{errors.subtitle}</p>}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Stats Label */}
                         <div className="grid gap-2">
-                            <Label htmlFor="stats_label">Label Statistik</Label>
+                            <Label htmlFor="stats_label" className="font-semibold">Label Statistik (Kiri Bawah)</Label>
                             <Input
                                 id="stats_label"
                                 value={data.stats_label}
                                 onChange={(e) => setData('stats_label', e.target.value)}
-                                placeholder="Contoh: Koleksi"
+                                placeholder="Contoh: Koleksi Buku"
                             />
                         </div>
                         {/* Stats Value */}
                         <div className="grid gap-2">
-                            <Label htmlFor="stats_value">Nilai Statistik</Label>
+                            <Label htmlFor="stats_value" className="font-semibold">Nilai Statistik</Label>
                             <Input
                                 id="stats_value"
                                 value={data.stats_value}
                                 onChange={(e) => setData('stats_value', e.target.value)}
-                                placeholder="Contoh: 50k+"
+                                placeholder="Contoh: 50.000+"
                             />
                         </div>
                     </div>
 
                     {/* Upload Gambar */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="image">Gambar Background *</Label>
+                    <div className="grid gap-2 p-4 border-2 border-dashed rounded-lg bg-zinc-50 dark:bg-zinc-900/50">
+                        <Label htmlFor="image" className="font-semibold">Gambar Latar (Background)</Label>
                         <Input
                             id="image"
                             type="file"
                             accept="image/*"
                             onChange={(e) => setData('image', e.target.files ? e.target.files[0] : null)}
-                            className="cursor-pointer"
+                            className="cursor-pointer bg-white dark:bg-zinc-950"
                         />
-                        <p className="text-[10px] text-muted-foreground italic">Recomended: 1920x1080 px</p>
-                        {errors.image && <p className="text-xs text-destructive">{errors.image}</p>}
+                        <p className="text-[11px] text-muted-foreground italic">
+                            Saran: Gunakan gambar landscape (1920x1080) dengan ukuran maks 2MB.
+                        </p>
+                        {errors.image && <p className="text-sm font-medium text-destructive">{errors.image}</p>}
                     </div>
 
                     {/* Status Aktif */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center space-x-3 rounded-md border p-4 shadow-sm">
                         <Switch
                             id="is_active"
                             checked={data.is_active}
                             onCheckedChange={(v: boolean) => setData('is_active', v)}
                         />
-                        <Label htmlFor="is_active">Aktifkan Banner Ini</Label>
+                        <div className="grid gap-1">
+                            <Label htmlFor="is_active" className="font-semibold cursor-pointer text-sm">
+                                Tampilkan Sekarang
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                Jika dinonaktifkan, banner tidak akan muncul di halaman depan.
+                            </p>
+                        </div>
                     </div>
 
-                    <DialogFooter className="pt-4">
-                        <Button type="button" variant="outline" onClick={handleClose} disabled={processing}>
+                    <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
+                        <Button type="button" variant="ghost" onClick={handleClose} disabled={processing}>
                             Batal
                         </Button>
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Menyimpan...' : 'Simpan Banner'}
+                        <Button type="submit" disabled={processing} className="min-w-30">
+                            {processing ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                                    Menyimpan...
+                                </span>
+                            ) : 'Simpan Banner'}
                         </Button>
                     </DialogFooter>
                 </form>

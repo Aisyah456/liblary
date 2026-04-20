@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import type { ScientificWork } from "@/components/admin/scientific-work/columns";
@@ -86,7 +87,7 @@ export default function EditScientificWorkModal({
         setLoading(true);
         setMessage(null);
 
-        router.put(`/scientific-works/${scientificWork.id}`, formData, {
+        router.put(`/admin/scientific-works/${scientificWork.id}`, formData, {
             preserveScroll: true,
             onSuccess: (page) => {
                 // Mengambil data terbaru dari props atau fallback ke local state

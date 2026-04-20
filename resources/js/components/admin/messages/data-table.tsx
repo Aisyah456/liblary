@@ -153,7 +153,7 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                         onChange={(e) => searchColumn?.setFilterValue(e.target.value)}
                         className="pl-9 pr-9 h-10 focus-visible:ring-emerald-500"
                     />
-                    {searchColumn?.getFilterValue() && (
+                    {Boolean(searchColumn?.getFilterValue()) && (
                         <Button
                             variant="ghost"
                             onClick={() => searchColumn?.setFilterValue("")}
@@ -172,7 +172,7 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                                 <Button variant="outline" size="sm" className="h-10 gap-2 border-dashed">
                                     <Filter className="h-4 w-4" />
                                     Status
-                                    {statusColumn.getFilterValue() && (
+                                    {Boolean(statusColumn.getFilterValue()) && (
                                         <Badge className="ml-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
                                             {String(statusColumn.getFilterValue())}
                                         </Badge>

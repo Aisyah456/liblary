@@ -1,9 +1,37 @@
-import React, { useState, useEffect, Fragment } from 'react';
-import { Link, usePage } from '@inertiajs/react';
 import { Menu, Transition, Disclosure } from '@headlessui/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, Menu as MenuIcon, X, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, Fragment } from 'react';
 
-export default function Navbar({ auth }) {
+type NavAuth = {
+    user?: unknown;
+};
+
+type NavItem = {
+    name: string;
+    href: string;
+    external?: boolean;
+};
+
+type NavLinkProps = {
+    item: NavItem;
+    className?: string;
+};
+
+type BasicLinkProps = {
+    href: string;
+    children: React.ReactNode;
+    active: boolean;
+};
+
+type DesktopDropdownProps = {
+    title: string;
+    items: NavItem[];
+    NavLink: React.ComponentType<NavLinkProps>;
+    active: boolean;
+};
+
+export default function Navbar({ auth }: { auth?: NavAuth | null }) {
     const [isScrolled, setIsScrolled] = useState(false);
     const { url } = usePage(); // Untuk mendeteksi link aktif
 
@@ -26,7 +54,7 @@ export default function Navbar({ auth }) {
         { name: 'Slims (OPAC)', href: 'https://pustaka.thamrin.ac.id/', external: true },
     ];
 
-    const NavLink = ({ item, className }) => {
+    const NavLink = ({ item, className }: NavLinkProps) => {
         const isActive = url === item.href;
         if (item.external) {
             return (
@@ -51,7 +79,7 @@ export default function Navbar({ auth }) {
                 }`}>
                     
                     {/* LEFT: Logo */}
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                         <Link href="/" className="flex items-center group">
                             <img src="/images/logo-umht.png" alt="Logo" className="h-9 w-auto transition-transform group-hover:scale-105" />
                         </Link>
@@ -65,7 +93,7 @@ export default function Navbar({ auth }) {
                         <DesktopDropdown title="Layanan" items={layananItems} NavLink={NavLink} active={url.startsWith('/layanan') && !url.includes('e-journal')} />
                         <DesktopDropdown title="Koleksi" items={koleksiItems} NavLink={NavLink} active={url.includes('e-journal') || url.includes('eresources')} />
                         
-                        <DesktopLink href="/news" active={url.startsWith('/news')}>Berita</DesktopLink>
+                        {/* <DesktopLink href="/news" active={url.startsWith('/news')}>Berita</DesktopLink> */}
                         <DesktopLink href="/layanan/kontak" active={url === '/layanan/kontak'}>Kontak</DesktopLink>
                     </div>
 
@@ -155,7 +183,7 @@ export default function Navbar({ auth }) {
     );
 }
 
-function DesktopLink({ href, children, active }) {
+function DesktopLink({ href, children, active }: BasicLinkProps) {
     return (
         <Link 
             href={href} 
@@ -168,7 +196,7 @@ function DesktopLink({ href, children, active }) {
     );
 }
 
-function DesktopDropdown({ title, items, NavLink, active }) {
+function DesktopDropdown({ title, items, NavLink, active }: DesktopDropdownProps) {
     return (
         <Menu as="div" className="relative">
             <Menu.Button className={`flex items-center px-4 py-2 text-sm font-semibold outline-none group transition-all rounded-lg ${
@@ -186,7 +214,7 @@ function DesktopDropdown({ title, items, NavLink, active }) {
                 leaveFrom="transform opacity-100 scale-100 translate-y-0"
                 leaveTo="transform opacity-0 scale-95 translate-y-1"
             >
-                <Menu.Items className="absolute left-0 mt-2 w-56 origin-top-left bg-white border border-gray-100 rounded-2xl shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-[120] p-2 overflow-hidden">
+                <Menu.Items className="absolute left-0 mt-2 w-56 origin-top-left bg-white border border-gray-100 rounded-2xl shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-120 p-2 overflow-hidden">
                     {items.map((item) => (
                         <Menu.Item key={item.name}>
                             {({ active: itemActive }) => (
@@ -205,7 +233,7 @@ function DesktopDropdown({ title, items, NavLink, active }) {
     );
 }
 
-function MobileLink({ href, children, active }) {
+function MobileLink({ href, children, active }: BasicLinkProps) {
     return (
         <Disclosure.Button
             as={Link}

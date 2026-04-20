@@ -34,7 +34,7 @@ export type Membership = {
 
 const handleDelete = (id: number) => {
   if (confirm("Hapus keanggotaan ini? Data profil tetap ada, namun akses perpustakaan akan dicabut.")) {
-    router.delete(`/memberships/${id}`, {
+    router.delete(`/admin/memberships/${id}`, {
       preserveScroll: true,
     });
   }

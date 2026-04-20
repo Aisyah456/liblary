@@ -1,6 +1,7 @@
 import { useForm } from "@inertiajs/react";
 import { Percent, FileCheck, Info, Loader2 } from "lucide-react";
 import { useEffect } from "react";
+import { route } from "ziggy-js";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -21,8 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-import { route } from "ziggy-js";
-import { TurnitinSubmission } from "@/pages/admin/Turnitin/TurnitinProcess";
+import type { TurnitinSubmission } from "@/pages/admin/Turnitin/TurnitinProcess";
 
 interface ProcessTurnitinModalProps {
     isOpen: boolean;
@@ -65,7 +65,7 @@ export default function ProcessTurnitinModal({ isOpen, onClose, submission }: Pr
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        post(route('turnitin.results.store'), {
+        post(route('admin.turnitin.results.store_direct'), {
             forceFormData: true,
             onSuccess: () => {
                 handleClose();

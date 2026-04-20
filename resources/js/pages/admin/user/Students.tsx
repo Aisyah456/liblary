@@ -1,32 +1,44 @@
 import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react'; // Tambahkan useMemo
+import { route } from 'ziggy-js';
 import AddStudentModal from '@/components/admin/student/AddStudentModal';
-import type { Student} from '@/components/admin/student/columns';
+import type { Student } from '@/components/admin/student/columns';
 import { columns } from '@/components/admin/student/columns';
 import { DataTable } from '@/components/admin/student/data-table';
 import EditStudentModal from '@/components/admin/student/EditStudentModal';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import studentRoute from '@/routes/student';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Students',
-        href: studentRoute.index().url 
-    },
-];
+// Perbaikan 1: Pastikan penamaan rute konsisten dengan web.php 
+// Jika di web.php Route::resource('student',...), maka gunakan 'student.index'
+// Jika di web.php Route::resource('students',...), maka gunakan 'students.index'
 
 interface StudentsProps {
-    students: any[];
-    faculties: any[]; // Data dari controller
-    majors: any[];    // Data dari controller
+    students: never[]; // Ubah unknown ke any/Student jika memungkinkan
+    faculties: never[];
+    majors: never[];
 }
 
 export default function StudentsIndex({ students, faculties, majors }: StudentsProps) {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+
+    // Perbaikan 2: Masukkan breadcrumbs ke dalam komponen menggunakan useMemo
+    // Ini mencegah error "route not found" saat inisialisasi awal jika Ziggy belum siap
+    const breadcrumbs: BreadcrumbItem[] = useMemo(() => [
+        {
+            title: 'Students',
+            href: route('student.index'), // Sesuaikan dengan list rute Anda (singular/plural)
+        },
+    ], []);
+
+    const handleCloseEdit = () => {
+        setEditModalOpen(false);
+        // Jangan langsung null, beri sedikit delay agar animasi modal tutup selesai
+        setTimeout(() => setSelectedStudent(null), 200);
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -43,35 +55,31 @@ export default function StudentsIndex({ students, faculties, majors }: StudentsP
                     </Button>
                 </div>
 
-                {/* MODAL ADD: Memperbaiki typo majors */}
                 <AddStudentModal
                     isOpen={isAddModalOpen}
                     onClose={() => setIsAddModalOpen(false)}
                     faculties={faculties}
-                    majors={majors} // <-- Tadi ada typo 'majorss'
+                    majors={majors}
                 />
 
-                <div className="bg-gray-100 border border-gray-200 rounded-md">
+                <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-md overflow-hidden">
                     <DataTable
+                        // Pastikan columns menerima fungsi dengan benar
                         columns={columns(setEditModalOpen, setSelectedStudent)}
                         data={students}
                     />
                 </div>
             </div>
 
-            {/* MODAL EDIT: Menambahkan props faculties dan majors yang hilang */}
-            {selectedStudent && (
-                <EditStudentModal
-                    isOpen={editModalOpen}
-                    onClose={() => {
-                        setEditModalOpen(false);
-                        setSelectedStudent(null);
-                    }}
-                    student={selectedStudent}
-                    faculties={faculties} // <-- WAJIB DITAMBAHKAN
-                    majors={majors}       // <-- WAJIB DITAMBAHKAN
-                />
-            )}
+            {/* Perbaikan 3: EditStudentModal tetap dirender tapi dikontrol isOpen-nya 
+                agar data student yang terpilih tidak hilang saat animasi penutupan */}
+            <EditStudentModal
+                isOpen={editModalOpen}
+                onClose={handleCloseEdit}
+                student={selectedStudent}
+                faculties={faculties}
+                majors={majors}
+            />
         </AppLayout>
     );
 }

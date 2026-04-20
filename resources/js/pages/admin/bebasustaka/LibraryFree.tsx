@@ -1,5 +1,5 @@
+/* eslint-disable react-hooks/static-components */
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { useMemo, FormEvent, ChangeEvent, ReactNode, ElementType, useState, useEffect } from 'react';
 import {
     Send,
     UploadCloud,
@@ -11,11 +11,13 @@ import {
     FileCheck,
     AlertCircle
 } from 'lucide-react';
+import { CheckCircle2, X } from 'lucide-react';
+import type { FormEvent, ChangeEvent, ReactNode, ElementType } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
+import { route } from 'ziggy-js';
 import Footer from '@/components/home/Footer';
 import Navbar from '@/components/home/Navbar';
-import { route } from 'ziggy-js';
-import { CheckCircle2, X } from 'lucide-react'; 
 // Interface Definitions
 interface Faculty { id: number; name: string; }
 interface Major { id: number; name: string; faculty_id: number; degree_level: string; }
@@ -83,6 +85,7 @@ export default function LibraryFreeForm({ faculties, majors }: Props) {
 
     useEffect(() => {
         if (flash.success) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowToast(true);
             const timer = setTimeout(() => setShowToast(false), 5000); // Hilang setelah 5 detik
             return () => clearTimeout(timer);
@@ -91,7 +94,7 @@ export default function LibraryFreeForm({ faculties, majors }: Props) {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        post(route('bebas-pustaka.store'), {
+        post(route('admin.bebas-pustaka.store'), {
             forceFormData: true,
             onSuccess: () => {
                 reset();
@@ -212,6 +215,7 @@ export default function LibraryFreeForm({ faculties, majors }: Props) {
 
                                     <div className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            // eslint-disable-next-line react-hooks/static-components
                                             <InputWrapper label="Fakultas" error={errors.faculty_id}>
                                                 <select className={inputClasses} value={data.faculty_id} onChange={handleFacultyChange} required>
                                                     <option value="">Pilih Fakultas</option>
@@ -219,6 +223,7 @@ export default function LibraryFreeForm({ faculties, majors }: Props) {
                                                 </select>
                                             </InputWrapper>
 
+                                            // eslint-disable-next-line react-hooks/static-components
                                             <InputWrapper label="Program Studi" error={errors.major_id}>
                                                 <select className={inputClasses} value={data.major_id} disabled={!data.faculty_id} onChange={handleMajorChange} required>
                                                     <option value="">Pilih Program Studi</option>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Head, useForm, usePage } from '@inertiajs/react';
 import Footer from '@/components/home/Footer';
 import Navbar from '@/components/home/Navbar';

@@ -1,8 +1,6 @@
 <?php
 
 
-use App\Http\Controllers\Api\LibraryFeedbackController;
-use App\Http\Controllers\Cms\HeroSectionController;
 use App\Http\Controllers\Cms\MessageController as AdminMessageController;
 use App\Http\Controllers\Cms\NewsController as AdminNewsController;
 use App\Http\Controllers\Home\LandingPageController;
@@ -71,12 +69,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // --- Dashboard & Core Admin ---
 
         Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
+        Route::patch('/messages/{message}', [AdminMessageController::class, 'update'])->name('messages.update');
+        Route::delete('/messages/{message}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
 
         // --- News & Articles ---
         Route::post('news/{news}', [AdminNewsController::class, 'update'])->name('news.update.post');
         Route::resource('news', AdminNewsController::class);
         Route::resource('articles', App\Http\Controllers\Api\ArticleController::class);
-        Route::resource('bebas-pustaka', App\Http\Controllers\Cms\LibraryFreeController::class);
+
+        Route::resource('bebas-pustaka', App\Http\Controllers\Cms\LibraryFreeController::class)
+            ->parameters(['bebas-pustaka' => 'library_free']);
 
         // --- Basic Resources ---
         Route::resources([
@@ -85,10 +87,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'profile'  => App\Http\Controllers\ProfilController::class,
             'feedback' => App\Http\Controllers\Cms\FeedbackController::class,
         ]);
+        Route::resource('reference-services', App\Http\Controllers\ReferenceServiceController::class)
+            ->only(['destroy']);
+        Route::put('/hero/{hero}', [App\Http\Controllers\Cms\HeroSectionController::class, 'update'])->name('hero.update');
 
-        // --- Library & Academic Management (Pindahan dari CMS) ---
         Route::resources([
-            'hero'               => HeroSectionController::class,
+            'hero'               => App\Http\Controllers\Cms\HeroSectionController::class,
             'student'            => App\Http\Controllers\StudentController::class,
             'lecturers'          => App\Http\Controllers\LecturerController::class,
             'memberships'        => App\Http\Controllers\MembershipController::class,

@@ -20,9 +20,10 @@ interface ServiceItem {
 
 interface ServicesProps {
     initialData?: ServiceItem[]; // Opsional jika ingin data awal dari props
+    services?: ServiceItem[];
 }
 
-export default function Services({ initialData }: ServicesProps) {
+export default function Services({ initialData, services }: ServicesProps) {
     // 2. Ubah nama state agar tidak bentrok dengan props
     const [serviceList, setServiceList] = useState<ServiceItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ export default function Services({ initialData }: ServicesProps) {
         const fetchServices = async () => {
             try {
                 const response = await axios.get('/api/services');
-                let data: ServiceItem[] = response.data;
+                let data: ServiceItem[] = (initialData || services || response.data) as ServiceItem[];
 
                 // 3. Filter, Sort, dan Parse sekaligus saat fetch
                 const processedData = data

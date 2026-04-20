@@ -47,7 +47,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
     columns,
     data,
-    searchKey = "full_name",
+    searchKey = "title_line_1", // Default disesuaikan ke title_line_1
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -78,41 +78,34 @@ export function DataTable<TData, TValue>({
             const item = row.original;
             return {
                 "ID": item.id,
-                "NIM": item.nim,
-                "Nama Lengkap": item.full_name,
-                "Email": item.email,
-                "No HP": item.phone_number,
-                "Fakultas": item.faculty?.name || "-",
-                "Jurusan": item.major?.name || "-",
-                "Jenjang": item.degree_level,
-                "Keperluan": item.purpose,
-                "Tahun Masuk": item.entry_year,
-                "Tahun Lulus": item.graduation_year,
-                // Decimal 5,2 ditangani di sini
-                "Skor Turnitin (%)": item.turnitin_similarity_score !== null ? `${item.turnitin_similarity_score}%` : "Belum Dicek",
-                "Link Laporan": item.turnitin_report_url || "-",
-                "Status": item.status.toUpperCase(),
-                "Catatan Admin": item.admin_notes || "-",
-                "Tanggal Pengajuan": item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : "-"
+                "Badge Text": item.badge_text,
+                "Title Line 1": item.title_line_1,
+                "Title Highlight": item.title_highlight,
+                "Subtitle": item.subtitle,
+                "Path Gambar": item.image_path,
+                "Label Statistik": item.stats_label,
+                "Nilai Statistik": item.stats_value,
+                "Status Aktif": item.is_active ? "Aktif" : "Non-Aktif",
+                "Tanggal Dibuat": item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : "-"
             };
         });
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Bebas Pustaka");
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Hero Sections");
 
-        // Atur lebar kolom agar proporsional
+        // Penyesuaian lebar kolom Excel
         const wscols = [
-            { wch: 5 }, { wch: 15 }, { wch: 25 }, { wch: 25 }, { wch: 15 },
-            { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 12 },
-            { wch: 12 }, { wch: 15 }, { wch: 30 }, { wch: 12 }, { wch: 30 }, { wch: 20 }
+            { wch: 5 }, { wch: 30 }, { wch: 25 }, { wch: 20 }, { wch: 40 },
+            { wch: 30 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 20 }
         ];
         worksheet["!cols"] = wscols;
 
-        XLSX.writeFile(workbook, `Rekap_Bebas_Pustaka_${new Date().toLocaleDateString('id-ID')}.xlsx`);
+        XLSX.writeFile(workbook, `Manajemen_Hero_${new Date().toLocaleDateString('id-ID')}.xlsx`);
     };
 
-    const currentStatusFilter = table.getColumn("status")?.getFilterValue() as string;
+    // Filter menggunakan is_active (boolean)
+    const currentStatusFilter = table.getColumn("is_active")?.getFilterValue() as string;
 
     return (
         <div className="w-full space-y-4">
@@ -120,7 +113,7 @@ export function DataTable<TData, TValue>({
                 <div className="relative flex-1 w-full max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Cari nama mahasiswa..."
+                        placeholder="Cari judul banner..."
                         value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
                             table.getColumn(searchKey)?.setFilterValue(event.target.value)
@@ -130,12 +123,14 @@ export function DataTable<TData, TValue>({
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                    {currentStatusFilter && (
+                    {currentStatusFilter !== undefined && (
                         <Badge variant="secondary" className="h-9 gap-1 px-3 bg-slate-100 text-slate-900 border-slate-200">
-                            Status: <span className="font-bold uppercase">{currentStatusFilter}</span>
+                            Status: <span className="font-bold uppercase">
+                                {currentStatusFilter === "true" ? "AKTIF" : "NON-AKTIF"}
+                            </span>
                             <X
                                 className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
-                                onClick={() => table.getColumn("status")?.setFilterValue(undefined)}
+                                onClick={() => table.getColumn("is_active")?.setFilterValue(undefined)}
                             />
                         </Badge>
                     )}
@@ -148,19 +143,17 @@ export function DataTable<TData, TValue>({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuLabel>Berdasarkan Status</DropdownMenuLabel>
+                            <DropdownMenuLabel>Status Banner</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             {[
-                                { label: 'Menunggu', value: 'pending' },
-                                { label: 'Verifikasi', value: 'verifying' },
-                                { label: 'Disetujui', value: 'approved' },
-                                { label: 'Ditolak', value: 'rejected' }
+                                { label: 'Aktif', value: 'true' },
+                                { label: 'Non-Aktif', value: 'false' },
                             ].map((status) => (
                                 <DropdownMenuCheckboxItem
                                     key={status.value}
                                     checked={currentStatusFilter === status.value}
                                     onCheckedChange={(checked) =>
-                                        table.getColumn("status")?.setFilterValue(checked ? status.value : undefined)
+                                        table.getColumn("is_active")?.setFilterValue(checked ? status.value : undefined)
                                     }
                                 >
                                     {status.label}
@@ -239,7 +232,7 @@ export function DataTable<TData, TValue>({
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
-                                            Tidak ada data pengajuan bebas pustaka.
+                                        Tidak ada data Banner Hero.
                                     </TableCell>
                                 </TableRow>
                             )}

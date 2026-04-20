@@ -15,9 +15,7 @@ use Inertia\Response;
 
 class StudentController extends Controller
 {
-    /**
-     * Menampilkan daftar mahasiswa.
-     */
+
     public function index(): Response
     {
         return Inertia::render('admin/user/Students', [

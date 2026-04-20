@@ -39,7 +39,7 @@ function Login({
     const submit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        post(loginStore(), {
+        post(loginStore() as unknown as string, {
             onFinish: () => reset("password"),
         })
     }
@@ -81,7 +81,7 @@ function Login({
                                     <FieldLabel htmlFor="password">Password</FieldLabel>
                                     {canResetPassword && (
                                         <Link
-                                            href={passwordRequest()}
+                                            href={passwordRequest() as unknown as string}
                                             className="ml-auto text-sm underline hover:text-primary"
                                         >
                                             Forgot password?

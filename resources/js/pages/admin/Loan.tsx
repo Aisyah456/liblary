@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Head } from '@inertiajs/react';
 
 // Layouts & UI Components

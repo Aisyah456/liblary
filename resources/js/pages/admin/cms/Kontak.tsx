@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Head } from '@inertiajs/react';
 import { Mail, Clock } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';

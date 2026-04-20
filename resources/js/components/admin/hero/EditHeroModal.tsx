@@ -1,5 +1,6 @@
-import { useForm, router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
+import { route } from 'ziggy-js';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -13,8 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { HeroRow } from "@/pages/admin/cms/Hero";
-import { route } from 'ziggy-js';
+import type { HeroRow } from "@/pages/admin/cms/Hero";
 
 interface EditHeroModalProps {
     isOpen: boolean;
@@ -25,6 +25,7 @@ interface EditHeroModalProps {
 export default function EditHeroModal({ isOpen, onClose, hero }: EditHeroModalProps) {
     // 1. Definisikan form
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+        id: null as number | string | null,
         _method: 'put', // Penting untuk update data yang berisi file di Laravel
         badge_text: '',
         title_line_1: '',
@@ -40,6 +41,7 @@ export default function EditHeroModal({ isOpen, onClose, hero }: EditHeroModalPr
     useEffect(() => {
         if (isOpen && hero) {
             setData({
+                id: hero.id,
                 _method: 'put',
                 badge_text: hero.badge_text ?? '',
                 title_line_1: hero.title_line_1 ?? '',
@@ -65,7 +67,8 @@ export default function EditHeroModal({ isOpen, onClose, hero }: EditHeroModalPr
         e.preventDefault();
         if (!hero) return;
 
-        post(route('Hero.update', hero.id), {
+
+        post(route('admin.hero.update', hero.id), {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => handleClose(),
