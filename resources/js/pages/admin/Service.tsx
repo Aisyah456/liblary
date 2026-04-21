@@ -13,11 +13,12 @@ import { DataTable } from '@/components/admin/reference-service/data-table';
 import AddReferenceServiceModal from '@/components/ui/admin/reference-service/AddReferenceServiceModal';
 import EditReferenceServiceModal from '@/components/ui/admin/reference-service/EditReferenceServiceModal';
 import references from '@/routes/references';
+import ReferenceServiceController from '@/actions/App/Http/Controllers/ReferenceServiceController';
 
 const BREADCRUMBS: BreadcrumbItem[] = [
     {
         title: 'Layanan Referensi',
-        href:   references.index().url
+        href: ReferenceServiceController.index().url, // Pastikan method index() mengembalikan URL yang benar
     
     },
 ];

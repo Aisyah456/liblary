@@ -11,11 +11,12 @@ import EditShelfModal from '@/components/ui/admin/shelf/EditShelfModal';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import shelfRoute from '@/routes/shelves';
+import ShelfController from '@/actions/App/Http/Controllers/ShelfController';
 
 const BREADCRUMBS: BreadcrumbItem[] = [
     {
         title: 'Manajemen Rak & Lokasi',
-        href: shelfRoute.index().url,
+        href: ShelfController.index().url, // Pastikan method index() mengembalikan URL yang benar
     },
 ];
 

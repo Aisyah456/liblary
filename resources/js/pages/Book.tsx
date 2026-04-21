@@ -7,7 +7,8 @@ import AddBookModal from '@/components/ui/admin/book/AddBookModal';
 import EditBookModal from '@/components/ui/admin/book/EditBookModal';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import booksRoute from '@/routes/books';
+import booksRoute from '@/routes/Books';
+import BookController from '@/actions/App/Http/Controllers/BookController';
 
 export interface Book {
     id: number;
@@ -27,7 +28,7 @@ export interface Book {
 
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Manajemen Buku', href: booksRoute.index().url },
+    { title: 'Manajemen Buku', href: BookController.index().url }, // Pastikan method index() mengembalikan URL yang benar
 ];
 
 interface Props {

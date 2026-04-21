@@ -8,6 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import borrowings from '@/routes/borrowings';
 import borrowingsRoiute from '@/routes/borrowings';
+import BorrowingController from '@/actions/App/Http/Controllers/BorrowingController';
 
 // Tipe data disesuaikan dengan schema 'borrowings'
 export interface Borrowing {
@@ -32,7 +33,7 @@ export interface Borrowing {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Peminjaman Buku',
-        href: borrowingsRoiute.index().url,
+        href: BorrowingController.index().url,
     },
 ];
 

@@ -15,6 +15,7 @@ import AppLayout from '@/layouts/app-layout';
 
 // Types
 import type { BreadcrumbItem } from '@/types';
+import LoanController from '@/actions/App/Http/Controllers/LoanController';
 
 
 // Sesuaikan interface dengan Schema DB Loans
@@ -35,7 +36,7 @@ export interface Loan {
 const BREADCRUMBS: BreadcrumbItem[] = [
     {
         title: 'Manajemen Peminjaman',
-        href: loansRoute.index().url, 
+        href: LoanController.index().url, // Pastikan method index() mengembalikan URL yang benar 
     }, p
 ];
 

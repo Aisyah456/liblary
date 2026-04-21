@@ -35,7 +35,7 @@ export default function MembershipsIndex({ memberships }: Props) {
         setData(memberships);
     }, [memberships]);
 
-    const handleUpdate = (updatedMembership: Membership) => {/
+    const handleUpdate = (updatedMembership: Membership) => {
         setData((prev) =>
             prev.map((item) =>
                 item.id === updatedMembership.id ? updatedMembership : item

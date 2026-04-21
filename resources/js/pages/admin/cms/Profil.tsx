@@ -13,6 +13,7 @@ import EditProfilModal from '@/components/admin/Profil/LibraryProfileEdit';
 
 import type { BreadcrumbItem } from '@/types';
 import { route } from 'ziggy-js';
+import LibraryFreeController from '@/actions/App/Http/Controllers/LibraryFreeController';
 
 interface LibraryProfile {
     id: number;
@@ -30,7 +31,7 @@ interface Props {
     profiles?: LibraryProfile[];
 }
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Profil Perpustakaan', href: '#' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Profil Perpustakaan', href: LibraryFreeController.index().url }];
 
 export default function LibraryProfileCRUD({ profiles = [] }: Props) {
     const { delete: destroy } = useForm();

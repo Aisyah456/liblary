@@ -11,7 +11,7 @@ import AddClearanceModal from '@/components/ui/admin/library-clearance/AddCleara
 import EditClearanceModal from '@/components/ui/admin/library-clearance/EditClearanceModal';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import LibraryClearanceRoute from '@/routes/library-clearances';
+import LibraryClearanceRoute from '@/routes/library-clearance';
 
 const BREADCRUMBS: BreadcrumbItem[] = [
     {

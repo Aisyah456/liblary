@@ -96,8 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           icon: Newspaper,
           items: [
             { title: "Berita Utama", url: '/admin/news' },
-            { title: "Artikel & Blog", url: '/admin/articles' },
-            { title: "Pengumuman", url: '/admin/announcements' },
+            { title: "Artikel & Blog", url: '/admin/articles' },  
           ],
         }, // PERBAIKAN: Karakter '#' yang salah telah dihapus dari sini
       ],
@@ -196,8 +195,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isUrlActive = (menuUrl: string, items?: unknown[]) => {
     if (url === menuUrl) return true
     if (items) {
-      return items.some(item => url.startsWith(
-        .url) && item.url !== '#')
+      return items.some(item => url.startsWith(item.url) && item.url !== '#');
     }
     return url.startsWith(menuUrl) && menuUrl !== '#'
   }

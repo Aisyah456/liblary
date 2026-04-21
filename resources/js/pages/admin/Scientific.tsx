@@ -13,6 +13,7 @@ import EditScientificWorkModal from '@/components/ui/admin/scientific-work/EditS
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import scientificWorkRoute from "@/routes/scientific-works";
+import ScientificWorkController from '@/actions/App/Http/Controllers/ScientificWorkController';
 
 // Tambahkan interface untuk Category
 interface Category {
@@ -23,7 +24,7 @@ interface Category {
 const BREADCRUMBS: BreadcrumbItem[] = [
     {
         title: 'Jurnal & Karya Ilmiah',
-        href: scientificWorkRoute.index().url,
+        href: ScientificWorkController.index().url, // Pastikan method index() mengembalikan URL yang benar
     },
 ];
 

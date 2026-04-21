@@ -15,7 +15,8 @@ import { columns } from "@/components/admin/references/columns";
 
 // Types & Routes
 import type { BreadcrumbItem } from '@/types';
-import referencesRoute from "@/routes/references"; // Hilangkan .ts jika menggunakan Vite alias
+import referencesRoute from "@/routes/References"; // Hilangkan .ts jika menggunakan Vite alias
+import ReferenceServiceController from '@/actions/App/Http/Controllers/ReferenceServiceController';
 
 // Interface
 export interface BookSuggestion {
@@ -35,7 +36,7 @@ export interface BookSuggestion {
 
 const BREADCRUMBS: BreadcrumbItem[] = [
     { title: 'Layanan Perpustakaan', href: '#' },
-    { title: 'Usulan Buku', href: referencesRoute.index().url },
+    { title: 'Usulan Buku', href: ReferenceServiceController.index().url },
 ];
 
 interface Props {

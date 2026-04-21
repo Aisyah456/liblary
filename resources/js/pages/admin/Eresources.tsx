@@ -20,7 +20,7 @@ import type { EresourceAccess } from '@/types/models';
 const BREADCRUMBS: BreadcrumbItem[] = [
     {
         title: 'Akses E-Resource',
-        href: 'admin/eresources',
+        href: '/admin/eresources',
     },
 ];
 

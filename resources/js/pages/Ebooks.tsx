@@ -8,13 +8,14 @@ import EditEbookModal from '@/components/ui/admin/ebook/EditEbookModal';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import ebookRoute from '@/routes/ebooks';   
+import EbookController from '@/actions/App/Http/Controllers/EbookController';
 
 
 // Breadcrumbs disesuaikan untuk Ebook
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Manajemen E-Book',
-        href: ebookRoute.index().url,
+        href: EbookController.index().url, // Pastikan method index() mengembalikan URL yang benar
     },
 ];
 

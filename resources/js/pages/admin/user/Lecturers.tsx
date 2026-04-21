@@ -11,11 +11,12 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 // Sesuaikan import path ke folder lecturer
 import lecturerRoute from '@/routes/lecturers'; // Pastikan route ini ada
+import LecturerController from '@/actions/App/Http/Controllers/LecturerController';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Lecturers',
-        href: lecturerRoute.index().url
+        href: LecturerController.index().url, // Pastikan method index() mengembalikan URL yang benar
     },
 ];
 

@@ -16,7 +16,7 @@ import AppLayout from '@/layouts/app-layout';
 
 // Types
 import type { BreadcrumbItem } from '@/types';
-import SubmissionsRoute from '@/routes/submissions';
+import SubmissionController from '@/actions/App/Http/Controllers/SubmissionController';
 
 // Interface disesuaikan dengan skema gabungan Submission & TurnitinResult
 export interface TurnitinSubmission {
@@ -44,7 +44,7 @@ export interface TurnitinSubmission {
 const BREADCRUMBS: BreadcrumbItem[] = [
     {
         title: 'Pengajuan Turnitin',
-        href: SubmissionsRoute.index().url,
+        href: SubmissionController.index().url
     },
 ];  
 
