@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 class TurnitinSubmission extends Model
@@ -66,6 +67,12 @@ class TurnitinSubmission extends Model
         return Attribute::make(
             get: fn() => $this->file_path ? Storage::url($this->file_path) : null,
         );
+    }
+
+    public function result(): HasOne
+    {
+        // Pastikan nama model target sesuai (misal: TurnitinResult)
+        return $this->hasOne(TurnitinResult::class, 'submission_id');
     }
 
     /**

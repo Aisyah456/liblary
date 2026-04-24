@@ -53,7 +53,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData extends Record<string, any>, TValue>({
     columns,
     data,
-    searchKey = "name",
+    searchKey, // Default dilepas dari sini agar pengecekan di bawah lebih akurat
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -79,44 +79,52 @@ export function DataTable<TData extends Record<string, any>, TValue>({
         getSortedRowModel: getSortedRowModel(),
     })
 
+    // Helper untuk memastikan searchKey valid
+    const activeSearchKey = searchKey && table.getColumn(searchKey) ? searchKey : null;
+
     /* =========================
         EXPORT EXCEL (IMPROVED)
     ========================== */
     const exportToExcel = () => {
-        // Ambil data yang sudah terfilter tapi hapus kolom sensistif/action
         const exportData = table.getFilteredRowModel().rows.map((row) => {
             const original = { ...row.original }
-            // Hapus field yang biasanya tidak perlu di Excel
-            delete original.id
-            delete original.actions
-            return original
+            // Menghapus kolom sistem/aksi agar tidak masuk ke Excel
+            const { id, actions, created_at, updated_at, ...cleanedData } = original
+            return cleanedData
         })
 
         const worksheet = XLSX.utils.json_to_sheet(exportData)
         const workbook = XLSX.utils.book_new()
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data")
-        XLSX.writeFile(workbook, `Export_${new Date().getTime()}.xlsx`)
+        XLSX.writeFile(workbook, `Export_${new Date().toISOString().split('T')[0]}.xlsx`)
     }
 
     return (
         <div className="w-full space-y-4">
             {/* ========================= HEADER ========================= */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                {/* SEARCH */}
+
+                {/* SEARCH: Hanya muncul jika searchKey dikirim dan kolomnya ada */}
                 <div className="relative flex-1 w-full max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder={`Cari berdasarkan ${searchKey.replace("_", " ")}...`}
-                        value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-                        onChange={(event) =>
-                            table.getColumn(searchKey)?.setFilterValue(event.target.value)
-                        }
-                        className="pl-8 h-9"
-                    />
+                    {activeSearchKey ? (
+                        <>
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder={`Cari berdasarkan ${activeSearchKey.replace("_", " ")}...`}
+                                value={(table.getColumn(activeSearchKey)?.getFilterValue() as string) ?? ""}
+                                onChange={(event) =>
+                                    table.getColumn(activeSearchKey)?.setFilterValue(event.target.value)
+                                }
+                                className="pl-8 h-9"
+                            />
+                        </>
+                    ) : (
+                        <div className="h-9" /> // Spacer jika tidak ada search
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                    {/* FILTER STATUS */}
+                    {/* FILTER STATUS (is_active) */}
                     {table.getColumn("is_active") && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -135,7 +143,7 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                                 <DropdownMenuSeparator />
                                 <DropdownMenuCheckboxItem
                                     checked={table.getColumn("is_active")?.getFilterValue() === true}
-                                    onCheckedChange={(value) => 
+                                    onCheckedChange={(value) =>
                                         table.getColumn("is_active")?.setFilterValue(value ? true : undefined)
                                     }
                                 >
@@ -143,7 +151,7 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                                 </DropdownMenuCheckboxItem>
                                 <DropdownMenuCheckboxItem
                                     checked={table.getColumn("is_active")?.getFilterValue() === false}
-                                    onCheckedChange={(value) => 
+                                    onCheckedChange={(value) =>
                                         table.getColumn("is_active")?.setFilterValue(value ? false : undefined)
                                     }
                                 >
@@ -155,7 +163,7 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="w-full justify-start text-xs text-destructive hover:text-destructive"
+                                            className="w-full justify-start text-xs text-destructive hover:bg-destructive/10"
                                             onClick={() => table.getColumn("is_active")?.setFilterValue(undefined)}
                                         >
                                             <X className="mr-2 h-3 w-3" />
@@ -167,7 +175,6 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                         </DropdownMenu>
                     )}
 
-                    {/* EXPORT */}
                     <Button
                         variant="outline"
                         size="sm"
@@ -178,7 +185,6 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                         Export
                     </Button>
 
-                    {/* TOGGLE COLUMN */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-9 gap-2">
@@ -208,13 +214,13 @@ export function DataTable<TData extends Record<string, any>, TValue>({
             </div>
 
             {/* ========================= TABLE ========================= */}
-            <div className="rounded-md border bg-card shadow-sm overflow-hidden">
+            <div className="rounded-md border bg-card shadow-sm overflow-x-auto">
                 <Table>
                     <TableHeader className="bg-muted/50">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="font-semibold">
+                                    <TableHead key={header.id} className="font-semibold whitespace-nowrap">
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(
@@ -248,7 +254,7 @@ export function DataTable<TData extends Record<string, any>, TValue>({
                         ) : (
                             <TableRow>
                                 <TableCell
-                                    colSpan={table.getAllColumns().length}
+                                        colSpan={columns.length}
                                     className="h-32 text-center text-muted-foreground"
                                 >
                                     Data tidak ditemukan.
@@ -260,18 +266,18 @@ export function DataTable<TData extends Record<string, any>, TValue>({
             </div>
 
             {/* ========================= PAGINATION ========================= */}
-            <div className="flex items-center justify-between px-2">
-                <div className="flex-1 text-sm text-muted-foreground">
-                    Menampilkan {table.getPaginationRowModel().rows.length} dari{" "}
-                    {table.getFilteredRowModel().rows.length} baris
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-2">
+                <div className="text-sm text-muted-foreground order-2 sm:order-1">
+                    Menampilkan <span className="font-medium">{table.getPaginationRowModel().rows.length}</span> dari{" "}
+                    <span className="font-medium">{table.getFilteredRowModel().rows.length}</span> baris
                 </div>
 
-                <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">
+                <div className="flex items-center space-x-6 lg:space-x-8 order-1 sm:order-2">
+                    <div className="flex items-center justify-center text-sm font-medium">
                         Halaman {table.getState().pagination.pageIndex + 1} dari{" "}
                         {table.getPageCount()}
-                    </p>
-                    <div className="flex items-center space-x-1">
+                    </div>
+                    <div className="flex items-center space-x-2">
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"

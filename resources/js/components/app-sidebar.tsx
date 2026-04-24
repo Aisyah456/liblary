@@ -98,7 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             { title: "Berita Utama", url: '/admin/news' },
             { title: "Artikel & Blog", url: '/admin/articles' },  
           ],
-        }, // PERBAIKAN: Karakter '#' yang salah telah dihapus dari sini
+        }, 
       ],
     },
     {
@@ -157,7 +157,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           items: [
             { title: "Validasi Turnitin", url: '/admin/turnitin/process' },
             { title: "Bebas Pustaka", url: '/admin/bebas-pustaka' },
-            { title: "Usulan Buku Baru", url: '#' },
+            { title: "Usulan Buku Baru", url: '/admin/usulkan-buku' },
           ],
         },
         {

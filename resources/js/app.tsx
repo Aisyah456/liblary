@@ -7,12 +7,20 @@ import 'slick-carousel/slick/slick-theme.css';
 import '../css/app.css';
 import { initializeTheme } from './hooks/use-appearance';
 
+// Inisialisasi tema sebelum app dimulai untuk mencegah flicker
+initializeTheme();
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
 
-    resolve: (name) => resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob('./Pages/**/*.tsx')),
+    // Pastikan menggunakan glob pattern yang benar dan return hasil resolve-nya
+    resolve: (name) =>
+        resolvePageComponent(
+            `./Pages/${name}.tsx`,
+            import.meta.glob('./Pages/**/*.tsx')
+        ),
 
     setup({ el, App, props }) {
         const root = createRoot(el);
@@ -24,11 +32,8 @@ createInertiaApp({
         );
     },
     progress: {
-        color: '#4B5563',
+        // Kamu bisa ganti warna ini ke teal-600 agar senada dengan UI usulan buku
+        color: '#0d9488',
+        showSpinner: true,
     },
-
-
 });
-
-// This will set light / dark mode on load...
-initializeTheme();

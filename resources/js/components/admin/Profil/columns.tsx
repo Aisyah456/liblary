@@ -26,6 +26,7 @@ const handleDelete = (id: number) => {
   }
 };
 
+
 export const columns = (
   onEdit: (partner: PartnerRow) => void
 ): ColumnDef<PartnerRow>[] => [

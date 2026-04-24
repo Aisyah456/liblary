@@ -8,7 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 // Components
 import type { BreadcrumbItem } from '@/types';
 import type { ReferenceService } from "@/components/admin/reference-service/columns";
-import { columns } from "@/components/admin/reference-service/columns";
+import { columns } from '@/components/admin/reference-service/columns';
 import { DataTable } from '@/components/admin/reference-service/data-table';
 import AddReferenceServiceModal from '@/components/ui/admin/reference-service/AddReferenceServiceModal';
 import EditReferenceServiceModal from '@/components/ui/admin/reference-service/EditReferenceServiceModal';

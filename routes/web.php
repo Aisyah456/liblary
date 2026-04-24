@@ -21,6 +21,8 @@ Route::controller(App\Http\Controllers\NewsController::class)->group(function ()
     Route::get('news/{slug}', 'show')->name('news.show')->where('slug', '[a-z0-9\-]+');
 });
 Route::get('/articles', [App\Http\Controllers\ArticleController::class, 'index'])->name('articles.index');
+Route::get('/articles/{article:slug}', [App\Http\Controllers\ArticleController::class, 'show'])->name('articles.show');
+
 Route::get('profil', [App\Http\Controllers\LibraryProfileController::class, 'index'])->name('profil.index');
 
 /*
@@ -53,6 +55,8 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('/services', [App\Http\Controllers\Api\ServiceController::class, 'index'])->name('services.index');
     Route::post('/kontak/send', [App\Http\Controllers\Api\MessageController::class, 'store'])->name('messages.send');
 });
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -110,13 +114,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('library-feedback', App\Http\Controllers\Api\LibraryFeedbackController::class)
             ->only(['index', 'show', 'destroy']);
 
+        Route::get('/usulkan-buku', [App\Http\Controllers\Cms\PublicBookProposalController::class, 'create'])->name('public.book-proposal.create');
+        Route::post('/usulkan-buku', [App\Http\Controllers\Cms\PublicBookProposalController::class, 'store'])->name('public.book-proposal.store');
 
         // --- Turnitin System ---
         Route::prefix('turnitin')->name('turnitin.')->group(function () {
             // Core Turnitin
             Route::post('results/store-direct', [App\Http\Controllers\TurnitinProcessController::class, 'storeResult'])->name('results.store_direct');
             Route::resource('process', App\Http\Controllers\TurnitinProcessController::class);
-
 
 
             // Submission Management

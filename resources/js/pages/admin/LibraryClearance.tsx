@@ -12,6 +12,7 @@ import EditClearanceModal from '@/components/ui/admin/library-clearance/EditClea
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import LibraryClearanceRoute from '@/routes/library-clearance';
+import LibraryClearanceController from '@/actions/App/Http/Controllers/LibraryClearanceController';
 
 const BREADCRUMBS: BreadcrumbItem[] = [
     {
@@ -20,7 +21,7 @@ const BREADCRUMBS: BreadcrumbItem[] = [
     },  
     {
         title: 'Bebas Pustaka',
-        href: LibraryClearanceRoute.index().url,
+        href: LibraryClearanceController.index().url,
     },
 ];
 

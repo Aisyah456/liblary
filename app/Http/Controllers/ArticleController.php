@@ -7,13 +7,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class ArticleController extends Controller
 {
+    /**
+     * Menampilkan daftar artikel untuk Admin CMS
+     */
     public function index()
     {
-        return Inertia::render('admin/cms/Article', [
+        return Inertia::render('Home', [
             'articles' => Article::latest()->get(),
+        ]);
+    }
+
+
+    public function show(Article $article)
+    {
+        return Inertia::render('ShowArticle', [
+            'article' => $article
         ]);
     }
 
@@ -21,15 +33,27 @@ class ArticleController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'category' => 'required',
+            'category' => ['required', Rule::in(['Berita Utama', 'Akademik', 'Koleksi', 'Event', 'Layanan'])],
             'excerpt' => 'required|string',
-            'content' => 'required',
+            'content' => 'required|string', // Pastikan sesuai field database
             'thumbnail' => 'nullable|image|max:2048',
-            'reading_time' => 'integer',
+            'reading_time' => 'nullable|integer',
             'is_featured' => 'boolean',
         ]);
 
-        $validated['slug'] = Str::slug($request->title);
+        // Otomatis buat slug yang unik
+        $slug = Str::slug($request->title);
+        $originalSlug = $slug;
+        $count = 1;
+        while (Article::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $count++;
+        }
+        $validated['slug'] = $slug;
+
+        // Jika artikel ini di-set sebagai Featured, matikan featured artikel lain
+        if ($request->is_featured) {
+            Article::where('is_featured', true)->update(['is_featured' => false]);
+        }
 
         if ($request->hasFile('thumbnail')) {
             $validated['thumbnail'] = $request->file('thumbnail')->store('articles', 'public');
@@ -44,21 +68,34 @@ class ArticleController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'category' => 'required',
+            'category' => ['required', Rule::in(['Berita Utama', 'Akademik', 'Koleksi', 'Event', 'Layanan'])],
             'excerpt' => 'required|string',
-            'content' => 'required',
+            'content' => 'required|string',
             'thumbnail' => 'nullable|image|max:2048',
-            'reading_time' => 'integer',
+            'reading_time' => 'nullable|integer',
             'is_featured' => 'boolean',
         ]);
 
-        $validated['slug'] = Str::slug($request->title);
+        // Update slug hanya jika judul berubah
+        if ($request->title !== $article->title) {
+            $slug = Str::slug($request->title);
+            $originalSlug = $slug;
+            $count = 1;
+            while (Article::where('slug', $slug)->where('id', '!=', $article->id)->exists()) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+            $validated['slug'] = $slug;
+        }
+
+        // Logika Featured: Pastikan hanya ada satu
+        if ($request->is_featured && !$article->is_featured) {
+            Article::where('is_featured', true)->update(['is_featured' => false]);
+        }
 
         if ($request->hasFile('thumbnail')) {
             if ($article->thumbnail) {
                 Storage::disk('public')->delete($article->thumbnail);
             }
-
             $validated['thumbnail'] = $request->file('thumbnail')->store('articles', 'public');
         }
 

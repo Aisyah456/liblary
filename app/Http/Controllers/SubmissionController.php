@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Submission;
 use App\Models\TurnitinResult;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class SubmissionController extends Controller
@@ -33,9 +35,22 @@ class SubmissionController extends Controller
             $validated['file_path'] = $request->file('file')->store('turnitin/submissions', 'private');
         }
 
+        Submission::create([
+            'user_id' => auth()->id(), // Ambil ID user yang sedang login
+            'full_name' => $request->full_name,
+            'identifier_id' => $request->identifier_id,
+            'title' => $request->title,
+            'document_type' => $request->document_type,
+            'file_path' => $path,
+        ]);
+
         Submission::create($validated);
 
-        return redirect()->back()->with('success', 'Data berhasil disimpan');
+
+        return redirect()->back()->with('message', [
+            'type' => 'success',
+            'text' => 'Pengajuan berhasil dikirimkan ke sistem.'
+        ]);
     }
 
     // Simpan Hasil Proses (ProcessTurnitinModal)
@@ -68,6 +83,35 @@ class SubmissionController extends Controller
             'status' => 'Completed',
         ]);
 
-        return redirect()->back()->with('success', 'Hasil Turnitin berhasil diperbarui.');
+        return redirect()->back()->with('message', [
+            'type' => 'success',
+            'text' => 'Hasil Turnitin untuk "' . Submission::find($request->submission_id)->title . '" telah diperbarui.'
+        ]);
+    }
+
+
+    public function destroy($id)
+    {
+        // Pastikan mencari di model Submission, bukan TurnitinResult
+        $submission = \App\Models\Submission::find($id);
+
+        if (!$submission) {
+            return redirect()->back()->with('message', [
+                'type' => 'error',
+                'text' => 'Gagal menghapus: Data tidak ditemukan.'
+            ]);
+        }
+
+        // Hapus file fisik dari storage private agar tidak memenuhi server
+        if ($submission->file_path && Storage::disk('private')->exists($submission->file_path)) {
+            Storage::disk('private')->delete($submission->file_path);
+        }
+
+        $submission->delete();
+
+        return redirect()->back()->with('message', [
+            'type' => 'warning',
+            'text' => 'Data pengajuan "' . $submission->title . '" berhasil dihapus.'
+        ]);
     }
 }

@@ -72,8 +72,8 @@ export default function NewsShow({ news }: Props) {
                         {news.thumbnail && (
                             <div className="mt-8 aspect-video overflow-hidden rounded-2xl bg-slate-100">
                                 <img
-                                    src={news.thumbnail}
-                                    alt=""
+                                    src={`/storage/${news.thumbnail}`}
+                                    alt={news.title || "Thumbnail"}
                                     className="h-full w-full object-cover"
                                 />
                             </div>

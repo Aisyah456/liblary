@@ -72,11 +72,11 @@ export default function Articel({ articles }: ArticleProps) {
                     <p>Ikuti perkembangan terbaru dari ekosistem perpustakaan kami.</p>
                 </TopHeader>
 
-                <ContentLayout>
+                <ContentLayout>  
                     {/* FEATURED NEWS */}
                     {featured && (
                         <FeaturedCard>
-                            <Link href={`/news/${featured.slug}`}>
+                            <Link href={`/articles/${featured.slug}`}>
                                 <div className="img-wrapper">
                                     <img
                                         src={getThumb(featured.thumbnail)}
@@ -104,7 +104,7 @@ export default function Articel({ articles }: ArticleProps) {
                         <h3 className="section-label">Berita Lainnya</h3>
                         {sideNews.map((item) => (
                             <SideCard key={item.id}>
-                                <Link href={`/news/${item.slug}`} className="side-link">
+                                <Link href={`/articles/${item.slug}`} className="side-link">
                                     <img
                                         src={getThumb(item.thumbnail)}
                                         alt={item.title}
@@ -119,7 +119,7 @@ export default function Articel({ articles }: ArticleProps) {
                         ))}
 
                         <Link href="/news" style={{ textDecoration: 'none' }}>
-                            <ViewAllBtn $active={true}>
+                            <ViewAllBtn $active={false}>
                                 Lihat Semua Arsip Berita
                             </ViewAllBtn>
                         </Link>
@@ -313,11 +313,13 @@ const SideCard = styled.div`
     }
 `;
 
-const ViewAllBtn = styled.div`
+// Ganti active menjadi $active
+const ViewAllBtn = styled.div<{ $active?: boolean }>`
     width: 100%;
     text-align: center;
     margin-top: 10px;
     padding: 15px;
+    /* Gunakan $active di sini */
     background: ${props => props.$active ? 'transparent' : '#f1f5f9'};
     border: 2px dashed #cbd5e1;
     color: #64748b;
